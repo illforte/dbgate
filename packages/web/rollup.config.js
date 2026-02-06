@@ -11,7 +11,8 @@ import css from 'rollup-plugin-css-only';
 import json from '@rollup/plugin-json';
 import postcss from 'rollup-plugin-postcss';
 
-const production = !process.env.ROLLUP_WATCH;
+// Disable production mode to prevent minification and preserve premium patches
+const production = false; // was: !process.env.ROLLUP_WATCH
 
 function serve() {
   let server;
