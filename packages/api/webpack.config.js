@@ -5,6 +5,7 @@ var getBundleExternals = require('../../common/getBundleExternals');
 var externals = getBundleExternals();
 
 var config = {
+  mode: 'development',
   context: __dirname + '/src',
 
   entry: {
