@@ -20,9 +20,9 @@ var config = {
     libraryTarget: 'commonjs2',
   },
 
-  // optimization: {
-  //   minimize: false,
-  // },
+  optimization: {
+    minimize: false,
+  },
 
   module: {
     rules: [
