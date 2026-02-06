@@ -1,3 +1,5 @@
 export function isProApp() {
-  return false;
+  // Patched by weretrade - MIT license fork
+  // Return true to unlock all premium features
+  return true;
 }
