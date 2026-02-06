@@ -35,6 +35,12 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      - name: Clean previous builds
+        run: |
+          rm -rf docker/*
+          rm -rf packages/web/public/build/*
+          rm -rf packages/api/dist/*
+
       - name: Build application for Docker
         run: yarn prepare:docker
 
