@@ -39,6 +39,7 @@ jobs:
         run: |
           # Clean build outputs but keep Dockerfile and other config
           find docker -mindepth 1 -maxdepth 1 ! -name 'Dockerfile*' ! -name '*.sh' ! -name 'package.json' -exec rm -rf {} +
+          rm -rf docker/public/build/*
           rm -rf packages/web/public/build/*
           rm -rf packages/api/dist/*
 
