@@ -1,0 +1,5 @@
+
+# Force rebuild to include premium patches
+
+The Docker build wasn't picking up the premium patches correctly. 
+This commit forces a cache-busted rebuild.
