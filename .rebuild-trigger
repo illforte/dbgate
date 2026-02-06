@@ -3,3 +3,4 @@
 
 The Docker build wasn't picking up the premium patches correctly. 
 This commit forces a cache-busted rebuild.
+# Force rebuild Sat Feb  7 00:34:32 CET 2026
