@@ -11,8 +11,8 @@ import css from 'rollup-plugin-css-only';
 import json from '@rollup/plugin-json';
 import postcss from 'rollup-plugin-postcss';
 
-// Disable production mode to prevent minification and preserve premium patches
-const production = false; // was: !process.env.ROLLUP_WATCH
+// Enable production mode but configure terser to preserve premium patches
+const production = !process.env.ROLLUP_WATCH;
 
 function serve() {
   let server;
@@ -65,8 +65,17 @@ export default [
       }),
 
       // If we're building for production (npm run build
-      // instead of npm run dev), minify
-      production && terser(),
+      // instead of npm run dev), minify but preserve premium patches
+      production && terser({
+        compress: {
+          inline: false,  // Don't inline functions like isProApp()
+          evaluate: false, // Don't evaluate constant expressions
+          keep_fnames: true, // Keep function names
+        },
+        mangle: false, // Don't mangle names
+        keep_classnames: true,
+        keep_fnames: true,
+      }),
     ],
   },
 
@@ -150,8 +159,17 @@ export default [
       !production && livereload('public'),
 
       // If we're building for production (npm run build
-      // instead of npm run dev), minify
-      production && terser(),
+      // instead of npm run dev), minify but preserve premium patches
+      production && terser({
+        compress: {
+          inline: false,  // Don't inline functions like isProApp()
+          evaluate: false, // Don't evaluate constant expressions
+          keep_fnames: true, // Keep function names
+        },
+        mangle: false, // Don't mangle names
+        keep_classnames: true,
+        keep_fnames: true,
+      }),
     ],
     watch: {
       clearScreen: true,

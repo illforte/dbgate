@@ -5,7 +5,7 @@ var getBundleExternals = require('../../common/getBundleExternals');
 var externals = getBundleExternals();
 
 var config = {
-  mode: 'development',
+  mode: 'production',
   context: __dirname + '/src',
 
   entry: {
@@ -22,7 +22,24 @@ var config = {
   },
 
   optimization: {
-    minimize: false,
+    minimize: true,
+    minimizer: [
+      new (require('terser-webpack-plugin'))({
+        terserOptions: {
+          compress: {
+            // Prevent inlining of isProApp function
+            inline: false,
+            // Prevent evaluation of constant expressions
+            evaluate: false,
+            // Keep function names
+            keep_fnames: true,
+          },
+          mangle: false, // Don't mangle variable names
+          keep_classnames: true,
+          keep_fnames: true,
+        },
+      }),
+    ],
   },
 
   module: {
