@@ -42,21 +42,18 @@ RUN mkdir -p public/build && \
     cp -r packages/web/public/build/* public/build/
 
 # Create entrypoint script that runs API from source (unbundled)
-RUN cat > /home/dbgate-docker/entrypoint-unbundled.sh << 'EOF'
-#!/bin/sh
-set -e
-
-echo "Starting DbGate Premium (Unbundled - Plugins Working)"
-echo "Version: 7.0.0-alpha.1-premium"
-echo "API: Running from source (no webpack)"
-echo "Plugins: Built and ready"
-
-# Run API server from source (unbundled)
-cd /home/dbgate-docker/packages/api
-exec node src/index.js --listen-api
-EOF
-
-RUN chmod +x /home/dbgate-docker/entrypoint-unbundled.sh
+RUN echo '#!/bin/sh' > /home/dbgate-docker/entrypoint-unbundled.sh && \
+    echo 'set -e' >> /home/dbgate-docker/entrypoint-unbundled.sh && \
+    echo '' >> /home/dbgate-docker/entrypoint-unbundled.sh && \
+    echo 'echo "Starting DbGate Premium (Unbundled - Plugins Working)"' >> /home/dbgate-docker/entrypoint-unbundled.sh && \
+    echo 'echo "Version: 7.0.0-alpha.1-premium"' >> /home/dbgate-docker/entrypoint-unbundled.sh && \
+    echo 'echo "API: Running from source (no webpack)"' >> /home/dbgate-docker/entrypoint-unbundled.sh && \
+    echo 'echo "Plugins: Built and ready"' >> /home/dbgate-docker/entrypoint-unbundled.sh && \
+    echo '' >> /home/dbgate-docker/entrypoint-unbundled.sh && \
+    echo '# Run API server from source (unbundled)' >> /home/dbgate-docker/entrypoint-unbundled.sh && \
+    echo 'cd /home/dbgate-docker/packages/api' >> /home/dbgate-docker/entrypoint-unbundled.sh && \
+    echo 'exec node src/index.js --listen-api' >> /home/dbgate-docker/entrypoint-unbundled.sh && \
+    chmod +x /home/dbgate-docker/entrypoint-unbundled.sh
 
 EXPOSE 3000
 VOLUME /root/.dbgate
