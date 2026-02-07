@@ -2,143 +2,83 @@ name: Build and Deploy DbGate Premium
 
 on:
   push:
-    branches: [ master, main ]
-    paths:
-      - 'docker/Dockerfile'
-      - 'app/**'
-      - 'packages/**'
-      - 'plugins/**'
-      - '.github/workflows/**'
-  workflow_dispatch:  # Allow manual trigger
+    branches: [ master, main, premium-clean ]
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/dbgate-premium
+  IMAGE_NAME: illforte/dbgate-premium
 
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Install dependencies
+      run: yarn install --frozen-lockfile
 
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=sha,prefix={{branch}}-
-            type=ref,event=branch
+    - name: Build application
+      run: yarn build:app
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./docker/Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
-          build-args: |
-            BUILD_DATE=${{ github.event.head_commit.timestamp }}
-            VERSION=${{ github.sha }}
+    - name: List build artifacts
+      run: |
+        echo "=== Checking build artifacts ==="
+        find docker -type f -name "bundle.js" -o -name "package.json" | head -20
+        find packages/web/public/build -type f 2>/dev/null | head -10 || echo "No web build found"
 
-      - name: Output image details
-        run: |
-          echo "### 🐳 Docker Image Built Successfully" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Image:** \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Tags:**" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+    - name: Verify premium patches in web bundle
+      run: |
+        echo "=== Verifying premium patches in web bundle ==="
+        if grep -q "isProApp(){return.\{1,5\}}" packages/web/public/build/bundle.js 2>/dev/null; then
+          echo "✅ Found isProApp in web bundle"
+          grep -o "isProApp(){return.\{1,10\}}" packages/web/public/build/bundle.js | head -1
+        else
+          echo "❌ isProApp not found in web bundle"
+          exit 1
+        fi
 
-  deploy-to-lair404:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    - name: Verify premium patches in API bundle
+      run: |
+        echo "=== Verifying premium patches in API bundle ==="
+        if ls packages/api/dist/bundle.js 2>/dev/null; then
+          if grep -q "premium" packages/api/dist/bundle.js; then
+            echo "✅ Found premium in API bundle"
+          else
+            echo "⚠️  Premium not found in API bundle (may be minified)"
+          fi
+        else
+          echo "⚠️  API bundle not found at expected location"
+        fi
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup SSH
-        env:
-          LAIR404_SSH_KEY: ${{ secrets.LAIR404_SSH_KEY }}
-          LAIR404_HOST: ${{ secrets.LAIR404_HOST }}
-        run: |
-          mkdir -p ~/.ssh
-          echo "$LAIR404_SSH_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H $LAIR404_HOST >> ~/.ssh/known_hosts
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./docker
+        file: ./docker/Dockerfile
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        no-cache: true
 
-      - name: Deploy to lair404
-        env:
-          LAIR404_HOST: ${{ secrets.LAIR404_HOST }}
-          LAIR404_USER: ${{ secrets.LAIR404_USER }}
-          GITHUB_ACTOR: ${{ github.actor }}
-        run: |
-          echo "🚀 Deploying DbGate Premium to lair404..."
-
-          ssh $LAIR404_USER@$LAIR404_HOST << 'EOF'
-            cd /opt/weretrade/dbgate
-
-            # Backup current compose file
-            cp docker-compose.oidc.yml docker-compose.oidc.yml.bak
-
-            # Update image to use GHCR
-            sed -i 's|image: dbgate/dbgate:.*|image: ghcr.io/${{ github.repository_owner }}/dbgate-premium:latest|g' docker-compose.oidc.yml
-
-            # Pull new image
-            docker pull ghcr.io/${{ github.repository_owner }}/dbgate-premium:latest
-
-            # Deploy
-            docker-compose -f docker-compose.oidc.yml down
-            docker-compose -f docker-compose.oidc.yml up -d
-
-            # Wait for health check
-            echo "⏳ Waiting 30s for containers to be healthy..."
-            sleep 30
-
-            # Verify deployment
-            docker ps | grep dbgate
-            docker logs dbgate-lair404 --tail 20
-            docker logs dbgate-auth-middleware --tail 10
-          EOF
-
-          echo "✅ Deployment complete!"
-
-      - name: Verify deployment
-        env:
-          LAIR404_HOST: ${{ secrets.LAIR404_HOST }}
-          LAIR404_USER: ${{ secrets.LAIR404_USER }}
-        run: |
-          ssh $LAIR404_USER@$LAIR404_HOST "curl -I http://localhost:3900/health 2>&1 | head -5"
-
-      - name: Deployment summary
-        run: |
-          echo "### 🚀 Deployment Status" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Status:** ✅ Deployed to lair404" >> $GITHUB_STEP_SUMMARY
-          echo "**Image:** \`ghcr.io/${{ github.repository_owner }}/dbgate-premium:latest\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Access:** https://dbquery.lair404.xyz" >> $GITHUB_STEP_SUMMARY
-          echo "**Features:** All premium features unlocked" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Commit:** ${{ github.event.head_commit.message }}" >> $GITHUB_STEP_SUMMARY
+    - name: Verify bundle timestamp in image
+      run: |
+        docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        echo "=== Bundle timestamp in Docker image ==="
+        docker run --rm ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest stat -c "%y %n" /home/dbgate-docker/public/build/bundle.js 2>/dev/null || echo "Bundle not found"
