@@ -1,5 +1,5 @@
 # Unbundled DbGate Premium - Plugins Working
-# No webpack bundling - direct source code execution
+# No webpack bundling for API - direct source code execution
 FROM node:22-alpine
 
 LABEL org.opencontainers.image.source="https://github.com/illforte/dbgate"
@@ -16,24 +16,23 @@ RUN apk add --no-cache \
 
 WORKDIR /home/dbgate-docker
 
-# Copy package files first for layer caching
-COPY package.json yarn.lock ./
-COPY packages/api/package.json ./packages/api/
-COPY packages/web/package.json ./packages/web/
-COPY app/package.json ./app/
+# Copy everything (source code + configs)
+COPY . .
 
-# Install all dependencies (including plugins)
+# Install all dependencies
 RUN yarn install --frozen-lockfile --production=false
 
-# Copy source code (unbundled)
-COPY packages ./packages
-COPY plugins ./plugins
-COPY app ./app
+# Build library packages (required by plugins and API)
+RUN yarn build:sqltree && \
+    yarn build:tools && \
+    yarn build:filterparser && \
+    yarn build:datalib
 
-# Apply premium patches are already in source from premium-clean branch
-# No need to patch - they're already applied in the source
+# Build plugins (backend and frontend)
+RUN yarn build:plugins:backend && \
+    yarn build:plugins:frontend
 
-# Build web frontend (Rollup will bundle web assets only)
+# Build web frontend only (Rollup bundles web assets)
 WORKDIR /home/dbgate-docker/packages/web
 RUN yarn build
 
@@ -42,20 +41,22 @@ WORKDIR /home/dbgate-docker
 RUN mkdir -p public/build && \
     cp -r packages/web/public/build/* public/build/
 
-# API runs unbundled from source (no webpack)
-# This allows dynamic plugin loading at runtime
+# Create entrypoint script that runs API from source (unbundled)
+RUN cat > /home/dbgate-docker/entrypoint-unbundled.sh << 'EOF'
+#!/bin/sh
+set -e
 
-# Create entrypoint script
-RUN echo '#!/bin/sh' > /home/dbgate-docker/entrypoint-unbundled.sh && \
-    echo 'set -e' >> /home/dbgate-docker/entrypoint-unbundled.sh && \
-    echo '' >> /home/dbgate-docker/entrypoint-unbundled.sh && \
-    echo 'echo "Starting DbGate Premium (Unbundled - Plugins Working)"' >> /home/dbgate-docker/entrypoint-unbundled.sh && \
-    echo 'echo "Version: 7.0.0-alpha.1-premium"' >> /home/dbgate-docker/entrypoint-unbundled.sh && \
-    echo '' >> /home/dbgate-docker/entrypoint-unbundled.sh && \
-    echo '# Run API server from source (unbundled)' >> /home/dbgate-docker/entrypoint-unbundled.sh && \
-    echo 'cd /home/dbgate-docker/packages/api' >> /home/dbgate-docker/entrypoint-unbundled.sh && \
-    echo 'exec node src/index.js --listen-api' >> /home/dbgate-docker/entrypoint-unbundled.sh && \
-    chmod +x /home/dbgate-docker/entrypoint-unbundled.sh
+echo "Starting DbGate Premium (Unbundled - Plugins Working)"
+echo "Version: 7.0.0-alpha.1-premium"
+echo "API: Running from source (no webpack)"
+echo "Plugins: Built and ready"
+
+# Run API server from source (unbundled)
+cd /home/dbgate-docker/packages/api
+exec node src/index.js --listen-api
+EOF
+
+RUN chmod +x /home/dbgate-docker/entrypoint-unbundled.sh
 
 EXPOSE 3000
 VOLUME /root/.dbgate
