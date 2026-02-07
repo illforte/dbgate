@@ -36,10 +36,11 @@ RUN yarn build:plugins:backend && \
 WORKDIR /home/dbgate-docker/packages/web
 RUN yarn build
 
-# Copy web build to public directory
+# Copy web build to public directory (HTML files and bundled assets)
 WORKDIR /home/dbgate-docker
-RUN mkdir -p public/build && \
-    cp -r packages/web/public/build/* public/build/
+RUN mkdir -p public && \
+    cp -r packages/web/public/* public/ && \
+    echo "Static files copied successfully"
 
 # Create entrypoint script that runs API from source (unbundled)
 RUN echo '#!/bin/sh' > /home/dbgate-docker/entrypoint-unbundled.sh && \
