@@ -68,13 +68,15 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build and push Docker image
+    - name: Build and push Docker image (unbundled)
       uses: docker/build-push-action@v5
       with:
-        context: ./docker
-        file: ./docker/Dockerfile
+        context: .
+        file: ./docker/Dockerfile.unbundled
         push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        tags: |
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:unbundled
         no-cache: true
 
     - name: Verify bundle timestamp in image
