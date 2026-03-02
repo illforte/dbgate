@@ -3,6 +3,7 @@ services:
   postgres:
     image: postgres
     restart: always
+    init: true
     environment:
       POSTGRES_PASSWORD: Pwd2020Db
     ports: 
@@ -12,6 +13,7 @@ services:
     image: mariadb
     command: --default-authentication-plugin=mysql_native_password
     restart: always
+    init: true
     ports: 
       - 16004:3306
     environment:
@@ -20,6 +22,7 @@ services:
   mysql-ssh-login:
     build: containers/mysql-ssh-login
     restart: always
+    init: true
     ports: 
       - 16017:3306
       - "16012:22"
@@ -27,6 +30,7 @@ services:
   mysql-ssh-keyfile:
     build: containers/mysql-ssh-keyfile
     restart: always
+    init: true
     ports: 
       - 16007:3306
       - "16008:22"
@@ -34,11 +38,12 @@ services:
   dex:
     build: containers/dex
     ports:
-      - "16009:5556"
+      - "127.0.0.1:6009:5556"
 
   mongo:
     image: mongo:4.4.29
     restart: always
+    init: true
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: Pwd2020Db
@@ -53,6 +58,7 @@ services:
   mssql:
     image: mcr.microsoft.com/mssql/server
     restart: always
+    init: true
     ports:
       - 16014:1433
     environment:
