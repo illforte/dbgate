@@ -1,4 +1,7 @@
 <script lang="ts" context="module">
+  import { getActiveComponent } from '../utility/createActivator';
+  import { registerFileCommands } from '../commands/stdCommands';
+  import { __t } from '../translations';
   const getCurrentEditor = () => getActiveComponent('DiagramTab');
 
   registerFileCommands({
@@ -16,10 +19,9 @@
 
 <script lang="ts">
   import useEditorData from '../query/useEditorData';
-  import { registerFileCommands } from '../commands/stdCommands';
   import createUndoReducer from '../utility/createUndoReducer';
   import _ from 'lodash';
-  import createActivator, { getActiveComponent } from '../utility/createActivator';
+  import createActivator from '../utility/createActivator';
   import DiagramDesigner from '../designer/DiagramDesigner.svelte';
   import ToolStripContainer from '../buttons/ToolStripContainer.svelte';
   import ToolStripCommandButton from '../buttons/ToolStripCommandButton.svelte';
@@ -30,11 +32,11 @@
   import WidgetColumnBarItem from '../widgets/WidgetColumnBarItem.svelte';
   import WidgetsInnerContainer from '../widgets/WidgetsInnerContainer.svelte';
   import ToolStripButton from '../buttons/ToolStripButton.svelte';
+  import ToolStripDropDownButton from '../buttons/ToolStripDropDownButton.svelte';
   import DiagramSettings from '../designer/DiagramSettings.svelte';
   import { derived } from 'svelte/store';
   import { isProApp } from '../utility/proTools';
-  import { __t } from '../translations';
-
+  import { _t } from '../translations';
   export let tabid;
   export let conid;
   export let database;
@@ -160,7 +162,11 @@
   <svelte:fragment slot="toolstrip">
     <ToolStripCommandButton command="designer.arrange" />
     <ToolStripSaveButton idPrefix="diagram" />
-    <ToolStripCommandButton command="diagram.export" />
+    <ToolStripDropDownButton
+      icon="icon report"
+      label={_t('common.export', { defaultMessage: 'Export' })}
+      menu={[{ command: 'diagram.export' }, { command: 'diagram.exportPng' }]}
+    />
     <ToolStripCommandButton command="diagram.undo" />
     <ToolStripCommandButton command="diagram.redo" />
     <ToolStripCommandButton command="diagram.deleteSelectedTables" />

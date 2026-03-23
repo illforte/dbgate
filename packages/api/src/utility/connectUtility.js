@@ -1,9 +1,10 @@
 const fs = require('fs-extra');
-const { decryptConnection } = require('./crypting');
+const { decryptConnection, decryptPasswordString } = require('./crypting');
 const { getSshTunnelProxy } = require('./sshTunnelProxy');
 const platformInfo = require('../utility/platformInfo');
 const connections = require('../controllers/connections');
 const _ = require('lodash');
+const axios = require('axios');
 
 async function loadConnection(driver, storedConnection, connectionMode) {
   const { allowShellConnection, allowConnectionFromEnvVariables } = platformInfo;
@@ -132,11 +133,66 @@ async function connectUtility(driver, storedConnection, connectionMode, addition
 
   connection.ssl = await extractConnectionSslParams(connection);
 
+  const proxyUrl = String(connection.httpProxyUrl ?? '').trim();
+  const proxyUser = String(connection.httpProxyUser ?? '').trim();
+  const proxyPassword = String(connection.httpProxyPassword ?? '').trim();
+  if (!proxyUrl && (proxyUser || proxyPassword)) {
+    throw new Error('DBGM-00329 Proxy user or password is set but proxy URL is missing');
+  }
+  if (proxyUrl) {
+    let parsedProxy;
+    try {
+      const parsed = new URL(proxyUrl.includes('://') ? proxyUrl : `http://${proxyUrl}`);
+      parsedProxy = {
+        protocol: parsed.protocol.replace(':', ''),
+        host: parsed.hostname,
+        port: parsed.port ? parseInt(parsed.port, 10) : (parsed.protocol === 'https:' ? 443 : 80),
+      };
+      const username = connection.httpProxyUser ?? parsed.username;
+      const rawPassword = connection.httpProxyPassword ?? parsed.password;
+      const password = decryptPasswordString(rawPassword);
+      if (username) {
+        parsedProxy.auth = { username, password: password ?? '' };
+      }
+    } catch (err) {
+      throw new Error(`DBGM-00334 Invalid proxy URL "${proxyUrl}": ${err && err.message ? err.message : err}`);
+    }
+    connection.axios = axios.default.create({ proxy: parsedProxy });
+  } else {
+    connection.axios = axios.default;
+  }
+
   const conn = await driver.connect({ conid: connectionLoaded?._id, ...connection, ...additionalOptions });
   return conn;
+}
+
+function getRestAuthFromConnection(connection) {
+  if (!connection) return null;
+  if (connection.authType == 'basic') {
+    return {
+      type: 'basic',
+      user: connection.user,
+      password: decryptPasswordString(connection.password),
+    };
+  }
+  if (connection.authType == 'bearer') {
+    return {
+      type: 'bearer',
+      token: connection.authToken,
+    };
+  }
+  if (connection.authType == 'apikey') {
+    return {
+      type: 'apikey',
+      header: connection.apiKeyHeader,
+      value: connection.apiKeyValue,
+    };
+  }
+  return null;
 }
 
 module.exports = {
   extractConnectionSslParams,
   connectUtility,
+  getRestAuthFromConnection,
 };

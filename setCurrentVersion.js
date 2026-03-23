@@ -5,7 +5,7 @@ function changeDependencies(deps, version) {
   if (!deps) return;
   for (const key of Object.keys(deps)) {
     if (key.startsWith('dbgate-') && key != 'dbgate-plugin-tools' && key != 'dbgate-query-splitter') {
-      deps[key] = `^${version}`;
+      deps[key] = `${version}`;
     }
   }
 }
@@ -46,6 +46,7 @@ changePackageFile('packages/datalib', json.version);
 changePackageFile('packages/serve', json.version);
 changePackageFile('packages/filterparser', json.version);
 changePackageFile('packages/dbmodel', json.version);
+changePackageFile('packages/rest', json.version);
 
 if (fs.existsSync('packer/azure-ubuntu.pkr.hcl')) {
   const text = fs.readFileSync('packer/azure-ubuntu.pkr.hcl', { encoding: 'utf-8' });

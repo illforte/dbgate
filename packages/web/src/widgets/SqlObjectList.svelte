@@ -1,4 +1,5 @@
 <script lang="ts" context="module">
+  import _ from 'lodash';
   function generateObjectList(seed = 0) {
     const counts = [1000, 1200, 1100, 2100, 720];
     const schemas = ['A', 'dev', 'public', 'dbo'];
@@ -25,7 +26,6 @@
   } from '../utility/metadataLoaders';
   import SearchBoxWrapper from '../elements/SearchBoxWrapper.svelte';
   import AppObjectList from '../appobj/AppObjectList.svelte';
-  import _ from 'lodash';
   import * as databaseObjectAppObject from '../appobj/DatabaseObjectAppObject.svelte';
   import SubTableColumnList from '../appobj/SubTableColumnList.svelte';
   import { chevronExpandIcon } from '../icons/expandIcons';
@@ -310,7 +310,7 @@
       data-testid="SqlObjectList_searchMenuDropDown"
     />
     {#if !filter}
-      <DropDownButton icon="icon plus-thick" menu={createAddMenu} />
+      <DropDownButton icon="icon plus-thick" menu={createAddMenu} data-testid="SqlObjectList_addButton" />
     {/if}
     <DropDownButton
       menu={createRefreshDatabaseMenu}

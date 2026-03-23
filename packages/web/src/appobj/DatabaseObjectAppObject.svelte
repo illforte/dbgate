@@ -1,6 +1,6 @@
 <script lang="ts" context="module">
   import { copyTextToClipboard } from '../utility/clipboard';
-  import { _t, _tval, DefferedTranslationResult } from '../translations';
+  import { _t, _tval, type DefferedTranslationResult } from '../translations';
   import sqlFormatter from 'sql-formatter';
 
   export const extractKey = ({ schemaName, pureName }) => (schemaName ? `${schemaName}.${pureName}` : pureName);
@@ -411,7 +411,8 @@
             isDropCollection: true,
             requiresWriteAccess: true,
           },
-          hasPermission('dbops/table/rename') && {
+          hasPermission('dbops/table/rename') &&
+            !driver?.disableRenameCollection && {
             label: _t('dbObject.renameCollection', { defaultMessage: 'Rename collection/container' }),
             isRenameCollection: true,
             requiresWriteAccess: true,

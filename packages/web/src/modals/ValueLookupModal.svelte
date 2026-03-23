@@ -27,6 +27,7 @@
   export let driver;
   export let multiselect = false;
   export let jslid;
+  export let passAllRows = null;
   export let formatterFunction;
   export let dataType;
 
@@ -39,9 +40,61 @@
 
   let checkedKeys = [];
 
+  function normalizeSearchValue(value) {
+    if (value == null) return '';
+    if (_.isString(value) || _.isNumber(value) || _.isBoolean(value)) return String(value);
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  }
+
+  function getDedupeKey(value: any): string {
+    if (value === null) return 'null';
+    if (value === undefined) return 'undefined';
+    if (_.isString(value) || _.isNumber(value) || _.isBoolean(value)) {
+      return typeof value + ':' + String(value);
+    }
+    try {
+      return 'object:' + JSON.stringify(value);
+    } catch {
+      return 'object:' + String(value);
+    }
+  }
+
+  function getDistinctRowsFromPassedRows() {
+    const values: any[] = [];
+    const seenKeys = new Set<string>();
+    const sourceRows = (passAllRows || []).filter(row => !(row && row.__isStreamHeader === true));
+
+    const loweredSearch = (search || '').toLowerCase();
+
+    for (const row of sourceRows) {
+      const rowValue = _.get(row, field);
+      const key = getDedupeKey(rowValue);
+      if (seenKeys.has(key)) continue;
+      seenKeys.add(key);
+
+      if (
+        !loweredSearch ||
+        normalizeSearchValue(rowValue).toLowerCase().includes(loweredSearch)
+      ) {
+        values.push(rowValue);
+        if (values.length >= 100) {
+          break;
+        }
+      }
+    }
+
+    return values.map(value => ({ value }));
+  }
+
   async function reload() {
     isLoading = true;
-    if (jslid) {
+    if (passAllRows) {
+      rows = getDistinctRowsFromPassedRows();
+    } else if (jslid) {
       rows = await apiCall('jsldata/load-field-values', {
         jslid,
         search,
@@ -75,7 +128,9 @@
 
 <FormProvider>
   <ModalBase {...$$restProps}>
-    <svelte:fragment slot="header">{_t('dataGrid.chooseValue', { defaultMessage: 'Choose value from {field}', values: { field } })}</svelte:fragment>
+    <svelte:fragment slot="header"
+      >{_t('dataGrid.chooseValue', { defaultMessage: 'Choose value from {field}', values: { field } })}</svelte:fragment
+    >
 
     <!-- <FormTextField name="search" label='Search' placeholder="Search" bind:value={search} /> -->
     <div class="largeFormMarker">
@@ -114,7 +169,13 @@
               {
                 fieldName: 'value',
                 header: _t('dataGrid.value', { defaultMessage: 'Value' }),
-                formatter: row => (row.value == null ? '(NULL)' : row.value?.$binary?.base64 ? base64ToHex(row.value.$binary.base64) :  row.value),
+                formatter: row => {
+                  if (row.value == null) return '(NULL)';
+                  if (row.value?.$binary?.base64) return base64ToHex(row.value.$binary.base64);
+                  if (row.value?.$decimal) return row.value.$decimal;
+                  if (row.value?.$bigint) return row.value.$bigint;
+                  return row.value;
+                },
               },
             ]}
           >
@@ -148,7 +209,11 @@
           }}
         />
       {/if}
-      <FormStyledButton type="button" value={_t('common.close', { defaultMessage: 'Close' })} on:click={closeCurrentModal} />
+      <FormStyledButton
+        type="button"
+        value={_t('common.close', { defaultMessage: 'Close' })}
+        on:click={closeCurrentModal}
+      />
     </svelte:fragment>
   </ModalBase>
 </FormProvider>

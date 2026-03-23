@@ -15,7 +15,7 @@ import { get } from 'svelte/store';
 import AboutModal from '../modals/AboutModal.svelte';
 import SqlGeneratorModal from '../modals/SqlGeneratorModal.svelte';
 import { showModal } from '../modals/modalTools';
-import newQuery, { newDiagram, newPerspective, newQueryDesign } from '../query/newQuery';
+import newQuery, { newDiagram, newPerspective, newQueryDesign, newGraphQlQuery } from '../query/newQuery';
 import saveTabFile from '../utility/saveTabFile';
 import openNewTab from '../utility/openNewTab';
 import getElectron from '../utility/getElectron';
@@ -255,6 +255,20 @@ if (isProApp()) {
     name: __t('command.new.perspective', { defaultMessage: 'Perspective' }),
     menuName: __t('command.new.newPerspective', { defaultMessage: 'New perspective' }),
     onClick: () => newPerspective(),
+  });
+}
+
+if (isProApp()) {
+  registerCommand({
+    id: 'new.graphqlQuery',
+    category: __t('command.new', { defaultMessage: 'New' }),
+    icon: 'img graphql',
+    name: __t('command.new.graphqlQuery', { defaultMessage: 'GraphQL Query' }),
+    menuName: __t('command.new.newGraphqlQuery', { defaultMessage: 'New GraphQL Query' }),
+    onClick: () => newGraphQlQuery(),
+    testEnabled: () =>
+      getCurrentDatabase() &&
+      findEngineDriver(getCurrentDatabase()?.connection, getExtensions())?.databaseEngineTypes?.includes('graphql'),
   });
 }
 
@@ -745,6 +759,29 @@ if (isProApp()) {
         title: 'Chat',
         icon: 'img ai',
         tabComponent: 'DatabaseChatTab',
+        props: {
+          conid: getCurrentDatabase()?.connection?._id,
+          database: getCurrentDatabase()?.name,
+        },
+      });
+    },
+  });
+
+  registerCommand({
+    id: 'graphql.chat',
+    category: __t('command.database', { defaultMessage: 'Database' }),
+    name: __t('command.graphql.chat', { defaultMessage: 'GraphQL chat' }),
+    toolbar: true,
+    icon: 'icon ai',
+    testEnabled: () =>
+      getCurrentDatabase() != null &&
+      findEngineDriver(getCurrentDatabase()?.connection, getExtensions())?.databaseEngineTypes?.includes('graphql') &&
+      hasPermission('dbops/chat'),
+    onClick: () => {
+      openNewTab({
+        title: 'GraphQL Chat',
+        icon: 'img ai',
+        tabComponent: 'GraphQlChatTab',
         props: {
           conid: getCurrentDatabase()?.connection?._id,
           database: getCurrentDatabase()?.name,

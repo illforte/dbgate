@@ -15,6 +15,7 @@ const {
   getLogger,
   extractErrorLogData,
   filterStructureBySchema,
+  serializeJsTypesForJsonStringify,
 } = require('dbgate-tools');
 const { html, parse } = require('diff2html');
 const { handleProcessCommunication } = require('../utility/processComm');
@@ -94,10 +95,12 @@ module.exports = {
     }
   },
   handle_response(conid, database, { msgid, ...response }) {
-    const [resolve, reject, additionalData] = this.requests[msgid];
-    resolve(response);
-    if (additionalData?.auditLogger) {
-      additionalData?.auditLogger(response);
+    const [resolve, reject, additionalData] = this.requests[msgid] || [];
+    if (resolve) {
+      resolve(response);
+      if (additionalData?.auditLogger) {
+        additionalData?.auditLogger(response);
+      }
     }
     delete this.requests[msgid];
   },
@@ -165,6 +168,11 @@ module.exports = {
     if (!connection) {
       throw new Error(`databaseConnections: Connection with conid="${conid}" not found`);
     }
+
+    if (connection.engine?.endsWith('@rest')) {
+      return { isApiConnection: true };
+    }
+
     if (connection.passwordMode == 'askPassword' || connection.passwordMode == 'askUser') {
       throw new MissingCredentialsError({ conid, passwordMode: connection.passwordMode });
     }
@@ -219,12 +227,13 @@ module.exports = {
       this.close(conid, database, false);
     });
 
-    subprocess.send({
+    const connectMessage = serializeJsTypesForJsonStringify({
       msgtype: 'connect',
       connection: { ...connection, database },
       structure: lastClosed ? lastClosed.structure : null,
       globalSettings: await config.getSettings(),
     });
+    subprocess.send(connectMessage);
     return newOpened;
   },
 
@@ -232,9 +241,10 @@ module.exports = {
   sendRequest(conn, message, additionalData = {}) {
     const msgid = crypto.randomUUID();
     const promise = new Promise((resolve, reject) => {
-      this.requests[msgid] = [resolve, reject, additionalData];
+      this.requests[msgid] = [resolve, reject, additionalData, conn.conid, conn.database];
       try {
-        conn.subprocess.send({ msgid, ...message });
+        const serializedMessage = serializeJsTypesForJsonStringify({ msgid, ...message });
+        conn.subprocess.send(serializedMessage);
       } catch (err) {
         logger.error(extractErrorLogData(err), 'DBGM-00115 Error sending request do process');
         this.close(conn.conid, conn.database);
@@ -256,12 +266,12 @@ module.exports = {
   },
 
   sqlSelect_meta: true,
-  async sqlSelect({ conid, database, select, auditLogSessionGroup }, req) {
+  async sqlSelect({ conid, database, select, commandTimeout, auditLogSessionGroup }, req) {
     await testConnectionPermission(conid, req);
     const opened = await this.ensureOpened(conid, database);
     const res = await this.sendRequest(
       opened,
-      { msgtype: 'sqlSelect', select },
+      { msgtype: 'sqlSelect', select, commandTimeout },
       {
         auditLogger:
           auditLogSessionGroup && select?.from?.name?.pureName
@@ -336,9 +346,12 @@ module.exports = {
   },
 
   collectionData_meta: true,
-  async collectionData({ conid, database, options, auditLogSessionGroup }, req) {
+  async collectionData({ conid, database, options, commandTimeout, auditLogSessionGroup }, req) {
     await testConnectionPermission(conid, req);
     const opened = await this.ensureOpened(conid, database);
+    if (commandTimeout && options) {
+      options.commandTimeout = commandTimeout;
+    }
     const res = await this.sendRequest(
       opened,
       { msgtype: 'collectionData', options },
@@ -468,6 +481,7 @@ module.exports = {
 
     const databasePermissions = await loadDatabasePermissionsFromRequest(req);
     const tablePermissions = await loadTablePermissionsFromRequest(req);
+    const databasePermissionRole = getDatabasePermissionRole(conid, database, databasePermissions);
     const fieldsAndRoles = [
       [changeSet.inserts, 'create_update_delete'],
       [changeSet.deletes, 'create_update_delete'],
@@ -482,7 +496,7 @@ module.exports = {
           operation.schemaName,
           operation.pureName,
           tablePermissions,
-          databasePermissions
+          databasePermissionRole
         );
         if (getTablePermissionRoleLevelIndex(role) < getTablePermissionRoleLevelIndex(requiredRole)) {
           throw new Error('DBGM-00262 Permission not granted');
@@ -571,6 +585,24 @@ module.exports = {
     };
   },
 
+  pingDatabases_meta: true,
+  async pingDatabases({ databases }, req) {
+    if (!databases || !Array.isArray(databases)) return { status: 'ok' };
+    for (const { conid, database } of databases) {
+      if (!conid || !database) continue;
+      const existing = this.opened.find(x => x.conid == conid && x.database == database);
+      if (existing) {
+        try {
+          existing.subprocess.send({ msgtype: 'ping' });
+        } catch (err) {
+          logger.error(extractErrorLogData(err), 'DBGM-00308 Error pinging DB connection');
+          this.close(conid, database);
+        }
+      }
+    }
+    return { status: 'ok' };
+  },
+
   refresh_meta: true,
   async refresh({ conid, database, keepOpen }, req) {
     await testConnectionPermission(conid, req);
@@ -613,6 +645,15 @@ module.exports = {
         structure: existing.structure,
       };
       socket.emitChanged(`database-status-changed`, { conid, database });
+
+      // Reject all pending requests for this connection
+      for (const [msgid, entry] of Object.entries(this.requests)) {
+        const [resolve, reject, additionalData, reqConid, reqDatabase] = entry;
+        if (reqConid === conid && reqDatabase === database) {
+          reject('DBGM-00309 Database connection closed');
+          delete this.requests[msgid];
+        }
+      }
     }
   },
 

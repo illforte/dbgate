@@ -6,7 +6,7 @@ services:
     init: true
     environment:
       POSTGRES_PASSWORD: Pwd2020Db
-    ports: 
+    ports:
       - 16000:5432
 
   mariadb:
@@ -14,7 +14,7 @@ services:
     command: --default-authentication-plugin=mysql_native_password
     restart: always
     init: true
-    ports: 
+    ports:
       - 16004:3306
     environment:
       - MYSQL_ROOT_PASSWORD=Pwd2020Db
@@ -23,17 +23,17 @@ services:
     build: containers/mysql-ssh-login
     restart: always
     init: true
-    ports: 
+    ports:
       - 16017:3306
-      - "16012:22"
+      - '16012:22'
 
   mysql-ssh-keyfile:
     build: containers/mysql-ssh-keyfile
     restart: always
     init: true
-    ports: 
+    ports:
       - 16007:3306
-      - "16008:22"
+      - '16008:22'
 
   dex:
     build: containers/dex
@@ -54,6 +54,11 @@ services:
     image: redis
     ports:
       - 16011:6379
+
+  dynamodb:
+    image: amazon/dynamodb-local
+    ports:
+      - 16015:8000
 
   mssql:
     image: mcr.microsoft.com/mssql/server

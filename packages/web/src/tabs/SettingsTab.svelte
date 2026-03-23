@@ -7,6 +7,7 @@
   import GeneralSettings from '../settings/GeneralSettings.svelte';
   import SettingsFormProvider from '../forms/SettingsFormProvider.svelte';
   import ConnectionSettings from '../settings/ConnectionSettings.svelte';
+  import DriverSettings from '../settings/DriverSettings.svelte';
   import ThemeSettings from '../settings/ThemeSettings.svelte';
   import DefaultActionsSettings from '../settings/DefaultActionsSettings.svelte';
   import BehaviourSettings from '../settings/BehaviourSettings.svelte';
@@ -19,9 +20,18 @@
   import SQLEditorSettings from '../settings/SQLEditorSettings.svelte';
   import AiSettingsTab from '../settings/AiSettingsTab.svelte';
   import hasPermission from '../utility/hasPermission';
+  import { openedTabs } from '../stores';
 
   export let selectedItem = 'general';
   export let tabid = null;
+
+  function handleUserChange(value) {
+    if (!tabid) return;
+
+    openedTabs.update(tabs =>
+      tabs.map(tab => (tab.tabid === tabid ? { ...tab, props: { ...tab.props, selectedItem: value } } : tab))
+    );
+  }
 
   const menuItems = [
     {
@@ -81,6 +91,13 @@
       testid: 'settings-external-tools',
     },
     hasPermission('settings/change') && {
+      label: _t('settings.drivers', { defaultMessage: 'Drivers' }),
+      identifier: 'drivers',
+      component: DriverSettings,
+      props: {},
+      testid: 'settings-drivers',
+    },
+    hasPermission('settings/change') && {
       label: _t('command.settings.shortcuts', { defaultMessage: 'Keyboard shortcuts' }),
       identifier: 'shortcuts',
       component: CommandListTab,
@@ -113,5 +130,6 @@
     flex1={true}
     flexColContainer={true}
     scrollableContentContainer={true}
+    onUserChange={handleUserChange}
   />
 </SettingsFormProvider>

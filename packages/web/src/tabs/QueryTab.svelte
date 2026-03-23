@@ -1,4 +1,8 @@
 <script lang="ts" context="module">
+  import { getActiveComponent } from '../utility/createActivator';
+  import { isProApp } from '../utility/proTools';
+  import { registerFileCommands } from '../commands/stdCommands';
+  import hasPermission from '../utility/hasPermission';
   import registerCommand from '../commands/registerCommand';
   import { copyTextToClipboard } from '../utility/clipboard';
   import yaml from 'js-yaml';
@@ -126,24 +130,23 @@
 <script lang="ts">
   import { getContext, onDestroy, onMount, setContext, tick } from 'svelte';
   import sqlFormatter from 'sql-formatter';
-  import { writable } from 'svelte/store';
+  import { writable, get } from 'svelte/store';
 
   import VerticalSplitter from '../elements/VerticalSplitter.svelte';
   import SqlEditor from '../query/SqlEditor.svelte';
   import useEditorData from '../query/useEditorData';
-  import { currentEditorWrapEnabled, extensions, getCurrentDatabase } from '../stores';
+  import { currentEditorWrapEnabled, extensions } from '../stores';
   import applyScriptTemplate from '../utility/applyScriptTemplate';
   import { changeTab, markTabUnsaved, sleep } from '../utility/common';
   import { getDatabaseInfo, useConnectionInfo, useSettings } from '../utility/metadataLoaders';
   import SocketMessageView from '../query/SocketMessageView.svelte';
   import useEffect from '../utility/useEffect';
   import ResultTabs from '../query/ResultTabs.svelte';
-  import { registerFileCommands } from '../commands/stdCommands';
   import invalidateCommands from '../commands/invalidateCommands';
   import { showModal } from '../modals/modalTools';
   import InsertJoinModal from '../modals/InsertJoinModal.svelte';
   import useTimerLabel from '../utility/useTimerLabel';
-  import createActivator, { getActiveComponent } from '../utility/createActivator';
+  import createActivator from '../utility/createActivator';
   import { findEngineDriver, getSqlFrontMatter, safeJsonParse, setSqlFrontMatter } from 'dbgate-tools';
   import AceEditor from '../query/AceEditor.svelte';
   import StatusBarTabItem from '../widgets/StatusBarTabItem.svelte';
@@ -158,7 +161,6 @@
   import ToolStripDropDownButton from '../buttons/ToolStripDropDownButton.svelte';
   import { extractQueryParameters, replaceQueryParameters } from 'dbgate-query-splitter';
   import QueryParametersModal from '../modals/QueryParametersModal.svelte';
-  import { isProApp } from '../utility/proTools';
   import HorizontalSplitter from '../elements/HorizontalSplitter.svelte';
   import uuidv1 from 'uuid/v1';
   import ToolStripButton from '../buttons/ToolStripButton.svelte';
@@ -166,7 +168,6 @@
   import RowsLimitModal from '../modals/RowsLimitModal.svelte';
   import _ from 'lodash';
   import FontIcon from '../icons/FontIcon.svelte';
-  import hasPermission from '../utility/hasPermission';
   import QueryAiAssistant from '../ai/QueryAiAssistant.svelte';
   import { getCurrentSettings } from '../stores';
   import { Messages } from 'openai/resources/chat/completions';
@@ -227,6 +228,7 @@
   let intervalId;
   let isInTransaction = false;
   let isAutocommit = false;
+  const isolationLevelStore = writable<{ level: string | null }>({ level: null });
   let splitterInitialValue = undefined;
   let autoDetectCharts = false;
   let domResultTabs;
@@ -296,6 +298,7 @@
     sessionId;
     isInTransaction;
     isAutocommit;
+    $isolationLevelStore;
     invalidateCommands();
   }
 
@@ -405,6 +408,9 @@
         });
         sesid = resp.sesid;
         sessionId = sesid;
+        if ($isolationLevelStore.level) {
+          await apiCall('sessions/set-isolation-level', { sesid, level: $isolationLevelStore.level });
+        }
       }
       if (driver?.implicitTransactions) {
         isInTransaction = true;
@@ -695,6 +701,7 @@
       kill();
     }
     errorMessages = [];
+    isolationLevelStore.set({ level: null });
   }
 
   let isInitialized = false;
@@ -930,6 +937,52 @@
           padLeft
         /></ToolStripButton
       >
+    {/if}
+    {#if driver?.isolationLevels}
+      <ToolStripDropDownButton
+        menu={() => [
+          {
+            label: $connection?.defaultIsolationLevel
+              ? _t('query.defaultIsolationLevelNamed', {
+                  defaultMessage: 'Default ({level})',
+                  values: { level: $connection.defaultIsolationLevel },
+                })
+              : _t('query.defaultIsolationLevel', { defaultMessage: 'Default' }),
+            switchStore: isolationLevelStore,
+            switchStoreGetter: () => get(isolationLevelStore),
+            switchOption: 'level',
+            switchOptionIsDefault: true,
+            closeOnSwitchClick: true,
+            onClick: async () => {
+              isolationLevelStore.set({ level: null });
+              if (sessionId && $connection?.defaultIsolationLevel) {
+                await apiCall('sessions/set-isolation-level', {
+                  sesid: sessionId,
+                  level: $connection.defaultIsolationLevel,
+                });
+              }
+            },
+          },
+          { divider: true },
+          ...driver.isolationLevels.map(level => ({
+            label: level,
+            switchStore: isolationLevelStore,
+            switchStoreGetter: () => get(isolationLevelStore),
+            switchOption: 'level',
+            switchOptionValue: level,
+            closeOnSwitchClick: true,
+            onClick: async () => {
+              if (sessionId) {
+                await apiCall('sessions/set-isolation-level', { sesid: sessionId, level });
+              }
+            },
+          })),
+        ]}
+        label={_t('query.isolationLevel', { defaultMessage: 'Isolation level' })}
+        icon="icon isolation-level"
+        disabled={busy}
+        data-testid="QueryTab_isolationLevelButton"
+      />
     {/if}
   </svelte:fragment>
 </ToolStripContainer>

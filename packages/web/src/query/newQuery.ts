@@ -1,6 +1,6 @@
 import _ from 'lodash';
-import { getCurrentDatabase } from '../stores';
-import { getConnectionLabel, getSqlFrontMatter, setSqlFrontMatter } from 'dbgate-tools';
+import { getCurrentDatabase, getExtensions } from '../stores';
+import { findEngineDriver, getConnectionLabel, getSqlFrontMatter, setSqlFrontMatter } from 'dbgate-tools';
 import yaml from 'js-yaml';
 import openNewTab from '../utility/openNewTab';
 
@@ -11,11 +11,13 @@ export default function newQuery({
   initialData = undefined,
   multiTabIndex = undefined,
   fixCurrentConnection = false,
+  forceBindCurrentConnection = false,
   ...props
 } = {}) {
   const currentDb = getCurrentDatabase();
   const connection = currentDb?.connection || {};
   const database = currentDb?.name;
+  const driver = findEngineDriver(connection.engine, getExtensions());
 
   const tooltip = `${getConnectionLabel(connection)}\n${database}`;
 
@@ -37,11 +39,14 @@ export default function newQuery({
       tabComponent,
       multiTabIndex,
       focused: true,
-      props: {
-        ...props,
-        conid: connection._id,
-        database,
-      },
+      props:
+        driver?.supportExecuteQuery || forceBindCurrentConnection
+          ? {
+              ...props,
+              conid: connection._id,
+              database,
+            }
+          : props,
     },
     { editor: initialData }
   );
@@ -57,4 +62,14 @@ export function newDiagram() {
 
 export function newPerspective() {
   return newQuery({ tabComponent: 'PerspectiveTab', icon: 'img perspective', title: 'Perspective #' });
+}
+
+export function newGraphQlQuery() {
+  return newQuery({
+    tabComponent: 'GraphQlQueryTab',
+    icon: 'img graphql',
+    title: 'Query #',
+    initialData: 'query {\n}',
+    forceBindCurrentConnection: true,
+  });
 }

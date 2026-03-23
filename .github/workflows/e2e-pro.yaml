@@ -30,7 +30,7 @@ jobs:
           repository: dbgate/dbgate-pro
           token: ${{ secrets.GH_TOKEN }}
           path: dbgate-pro
-          ref: 33fa7d2ff670ee5414a76610c2c11555f017d2a7
+          ref: 5baa88d0ad253537298e911868579bae0835888d
       - name: Merge dbgate/dbgate-pro
         run: |
           mkdir ../dbgate-pro
@@ -132,6 +132,10 @@ jobs:
         image: redis
         ports:
           - '16011:6379'
+      dynamodb:
+        image: amazon/dynamodb-local
+        ports:
+          - '16015:8000'
       mssql:
         image: mcr.microsoft.com/mssql/server
         ports:

@@ -1,4 +1,5 @@
 <script lang="ts" context="module">
+  import { __t } from '../translations';
   const getCurrentDataGrid = () => getActiveComponent('DataGridCore');
 
   registerCommand({
@@ -336,8 +337,15 @@
         if (row) {
           const colName = realColumnUniqueNames[cell[1]];
           if (colName) {
-            const data = row[colName];
+            let data = row[colName];
             if (!data) return 0;
+
+            if (_.isPlainObject(data)) {
+              if (data.$decimal) data = data.$decimal;
+              else if (data.$bigint) data = data.$bigint;
+              else return 0;
+            }
+
             let num = +data;
             if (_.isNaN(num)) return 0;
             return num;
@@ -347,6 +355,7 @@
       });
       let count = selectedCells.length;
       let rowCount = selectedRowData.length;
+      sum = Math.round(sum * 1e10) / 1e10;
       // return `Rows: ${rowCount.toLocaleString()}, Count: ${count.toLocaleString()}, Sum:${sum.toLocaleString()}`;
       return {
         rowCount,
@@ -438,7 +447,7 @@
   import { openJsonLinesData } from '../utility/openJsonLinesData';
   import contextMenuActivator from '../utility/contextMenuActivator';
   import InputTextModal from '../modals/InputTextModal.svelte';
-  import { __t, _t, _tval } from '../translations';
+  import { _t, _tval } from '../translations';
   import { isProApp } from '../utility/proTools';
   import SaveArchiveModal from '../modals/SaveArchiveModal.svelte';
   import hasPermission from '../utility/hasPermission';
@@ -452,6 +461,8 @@
   export let frameSelection = undefined;
   export let isLoading = false;
   export let allRowCount = undefined;
+  export let allRowCountError = undefined;
+  export let onReloadRowCount = undefined;
   export let onReferenceSourceChanged = undefined;
   export let onPublishedCellsChanged = undefined;
   export let onReferenceClick = undefined;
@@ -464,6 +475,7 @@
   export let schemaName = undefined;
   export let allowDefineVirtualReferences = false;
   export let formatterFunction;
+  export let passAllRows = null;
 
   export let isLoadedAll;
   export let loadedTime;
@@ -544,13 +556,22 @@
   let previousMultiColumnFilter = undefined;
   let selectedRows = [];
 
+  function resetVerticalScroll() {
+    firstVisibleRowScrollIndex = 0;
+    if (domVerticalScroll) {
+      domVerticalScroll.scroll(0);
+    }
+  }
+
   $: if (display?.config) {
     const currentFilters = JSON.stringify(display.config.filters);
     const currentMultiColumnFilter = display.config.multiColumnFilter;
-    if (
+    const filtersChanged =
       previousFilters !== '' &&
-      (previousFilters !== currentFilters || previousMultiColumnFilter !== currentMultiColumnFilter)
-    ) {
+      (previousFilters !== currentFilters || previousMultiColumnFilter !== currentMultiColumnFilter);
+
+    if (filtersChanged) {
+      resetVerticalScroll();
       const pkColumns = display?.baseTable?.primaryKey?.columns?.map(col => col.columnName) || [];
       const usePK = pkColumns.length > 0;
 
@@ -1207,8 +1228,10 @@
   $: gridScrollAreaHeight = containerHeight - 2 * rowHeight;
   $: gridScrollAreaWidth = containerWidth - columnSizes.frozenSize - headerColWidth - 32;
 
-  $: visibleRowCountUpperBound = Math.ceil(gridScrollAreaHeight / Math.floor(Math.max(1, rowHeight)));
-  $: visibleRowCountLowerBound = Math.floor(gridScrollAreaHeight / Math.ceil(Math.max(1, rowHeight)));
+  $: visibleRowCountUpperBound =
+    rowHeight > 0 ? Math.ceil(gridScrollAreaHeight / Math.floor(Math.max(1, rowHeight))) : 0;
+  $: visibleRowCountLowerBound =
+    rowHeight > 0 ? Math.floor(gridScrollAreaHeight / Math.ceil(Math.max(1, rowHeight))) : 0;
 
   $: visibleRealColumns = countVisibleRealColumns(
     columnSizes,
@@ -2002,6 +2025,7 @@
     { command: 'dataGrid.saveCellToFile', hideDisabled: true },
     { command: 'dataGrid.loadCellFromFile', hideDisabled: true },
     { command: 'dataGrid.toggleCellDataView', hideDisabled: true },
+    { command: 'gqlConnection.toggleCellDataView', hideDisabled: true },
     isProApp() && {
       text: _t('datagrid.useMacro', { defaultMessage: 'Use macro' }),
       submenu: macros
@@ -2211,6 +2235,7 @@
                 {allowDefineVirtualReferences}
                 seachInColumns={display.config?.searchInColumns}
                 onReload={refresh}
+                driver={display?.driver}
               />
             </td>
           {/each}
@@ -2250,6 +2275,7 @@
                   {conid}
                   {database}
                   {jslid}
+                  {passAllRows}
                   {formatterFunction}
                   driver={display?.driver}
                   filterBehaviour={display?.filterBehaviourOverride ??
@@ -2277,30 +2303,32 @@
         {/if}
       </thead>
       <tbody>
-        {#each _.range(firstVisibleRowScrollIndex, Math.min(firstVisibleRowScrollIndex + visibleRowCountUpperBound, grider.rowCount)) as rowIndex (rowIndex)}
-          <DataGridRow
-            {rowIndex}
-            {grider}
-            {conid}
-            {database}
-            driver={display?.driver}
-            {visibleRealColumns}
-            {rowHeight}
-            {autofillSelectedCells}
-            {isDynamicStructure}
-            selectedCells={filterCellsForRow(selectedCells, rowIndex)}
-            autofillMarkerCell={filterCellForRow(autofillMarkerCell, rowIndex)}
-            focusedColumns={display.focusedColumns}
-            inplaceEditorState={$inplaceEditorState}
-            currentCellColumn={currentCell && currentCell[0] == rowIndex ? currentCell[1] : null}
-            {dispatchInsplaceEditor}
-            {frameSelection}
-            onSetFormView={formViewAvailable && display?.baseTable?.primaryKey ? handleSetFormView : null}
-            {dataEditorTypesBehaviourOverride}
-            {gridColoringMode}
-            {overlayDefinition}
-          />
-        {/each}
+        {#if rowHeight > 0}
+          {#each _.range(firstVisibleRowScrollIndex, Math.min(firstVisibleRowScrollIndex + visibleRowCountUpperBound, grider.rowCount)) as rowIndex (rowIndex)}
+            <DataGridRow
+              {rowIndex}
+              {grider}
+              {conid}
+              {database}
+              driver={display?.driver}
+              {visibleRealColumns}
+              {rowHeight}
+              {autofillSelectedCells}
+              {isDynamicStructure}
+              selectedCells={filterCellsForRow(selectedCells, rowIndex)}
+              autofillMarkerCell={filterCellForRow(autofillMarkerCell, rowIndex)}
+              focusedColumns={display.focusedColumns}
+              inplaceEditorState={$inplaceEditorState}
+              currentCellColumn={currentCell && currentCell[0] == rowIndex ? currentCell[1] : null}
+              {dispatchInsplaceEditor}
+              {frameSelection}
+              onSetFormView={formViewAvailable && display?.baseTable?.primaryKey ? handleSetFormView : null}
+              {dataEditorTypesBehaviourOverride}
+              {gridColoringMode}
+              {overlayDefinition}
+            />
+          {/each}
+        {/if}
       </tbody>
     </table>
 
@@ -2374,6 +2402,15 @@
       <div class="row-count-label">
         {_t('datagrid.rows', { defaultMessage: 'Rows' })}: {allRowCount.toLocaleString()}
       </div>
+    {:else if allRowCountError && multipleGridsOnTab}
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <div
+        class="row-count-label row-count-error"
+        title={allRowCountError}
+        on:click={onReloadRowCount}
+      >
+        {_t('datagrid.rows', { defaultMessage: 'Rows' })}: {_t('datagrid.rowCountMany', { defaultMessage: 'Many' })}
+      </div>
     {/if}
 
     {#if isLoading}
@@ -2382,6 +2419,13 @@
 
     {#if !tabControlHiddenTab && !multipleGridsOnTab && allRowCount != null}
       <StatusBarTabItem text={`${_t('datagrid.rows', { defaultMessage: 'Rows' })}: ${allRowCount.toLocaleString()}`} />
+    {:else if !tabControlHiddenTab && !multipleGridsOnTab && allRowCountError}
+      <StatusBarTabItem
+        text={`${_t('datagrid.rows', { defaultMessage: 'Rows' })}: ${_t('datagrid.rowCountMany', { defaultMessage: 'Many' })}`}
+        title={allRowCountError}
+        clickable
+        onClick={onReloadRowCount}
+      />
     {/if}
   </div>
 {/if}
@@ -2444,6 +2488,15 @@
 
   .row-count-label:hover {
     opacity: 1;
+  }
+
+  .row-count-error {
+    cursor: pointer;
+    color: var(--theme-font-3);
+  }
+
+  .row-count-error:hover {
+    text-decoration: underline;
   }
 
   .selection-menu {

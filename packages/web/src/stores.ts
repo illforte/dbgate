@@ -164,7 +164,7 @@ export const lastUsedDefaultActions = writableWithStorage({}, 'lastUsedDefaultAc
 export const selectedDatabaseObjectAppObject = writable(null);
 export const focusedConnectionOrDatabase = writable<{ conid: string; database?: string; connection: any }>(null);
 
-export const focusedTreeRedisKey = writable<{ key: string; root: string; type: string; text: string }>(null);
+export const focusedTreeRedisKey = writable<{ key: string; type: string; text: string }>(null);
 
 export const cloudSigninTokenHolder = writableSettingsValue(null, 'cloudSigninTokenHolder');
 export const seenPremiumPromoWidget = writableWithStorage(null, 'seenPremiumPromoWidget');
@@ -473,3 +473,17 @@ cloudSigninTokenHolder.subscribe(value => {
 });
 export const getCloudSigninTokenHolder = () => cloudSigninTokenHolderValue;
 
+export const toggledDatabases = derived([extensions, useSettings()], ([$extensions, $settings]) => {
+  const res = new Map<string, boolean>();
+
+  if (!$extensions?.drivers || !$settings)
+    return res;
+
+  const hiddenEngines = $settings['hiddenDatabaseEngines'] || [];
+
+  for (const driver of $extensions.drivers) {
+    res.set(driver.title, !hiddenEngines.includes(driver.engine));
+  }
+  
+  return res;
+});

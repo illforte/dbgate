@@ -4,6 +4,7 @@ export interface SqlDialect {
   rangeSelect?: boolean;
   limitSelect?: boolean;
   ilike?: boolean;
+  likeAsFunction?: boolean;
   rowNumberOverPaging?: boolean;
   topRecords?: boolean;
   stringEscapeChar: string;
@@ -11,6 +12,7 @@ export interface SqlDialect {
   offsetFirstSkipSyntax?: boolean;
   offsetNotSupported?: boolean;
   useDatalengthForEmptyString?(dataType: string): boolean;
+  disableGroupingForDataType?(dataType: string): boolean;
   quoteIdentifier(s: string): string;
   fallbackDataType?: string;
   explicitDropConstraint?: boolean;
@@ -49,6 +51,12 @@ export interface SqlDialect {
   multipleSchema?: boolean;
   filteredIndexes?: boolean;
   namedDefaultConstraint?: boolean;
+  indexTypes?: {
+    value: string;
+    label: string;
+    isUnique?: boolean;
+    indexType?: string;
+  }[];
 
   specificNullabilityImplementation?: boolean;
   implicitNullDeclaration?: boolean;

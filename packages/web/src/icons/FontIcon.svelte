@@ -26,6 +26,8 @@
 </script>
 
 <script>
+  import DOMPurify from 'dompurify';
+
   export let icon;
   export let title = null;
   export let padLeft = false;
@@ -34,6 +36,8 @@
   export let colorClass = null;
   $: iconValue = typeof icon === 'string' ? icon : icon?.light || icon?.dark || '';
   $: isSvgString = iconValue.trim().startsWith('<svg');
+  $: sanitizedSvg = isSvgString ? DOMPurify.sanitize(iconValue, { USE_PROFILES: { svg: true, svgFilters: true } }) : '';
+  $: isTextIcon = iconValue.trim().startsWith('text ');
 
   const iconNames = {
     'icon minus-box': 'mdi mdi-minus-box-outline',
@@ -94,6 +98,7 @@
 
     'icon database': 'mdi mdi-database',
     'icon server': 'mdi mdi-server',
+    'icon api-server': 'mdi mdi-cloud-outline',
     'icon table': 'mdi mdi-table',
     'icon form': 'mdi mdi-form-select',
     'icon archive': 'mdi mdi-archive',
@@ -115,6 +120,7 @@
     'icon undo': 'mdi mdi-undo',
     'icon redo': 'mdi mdi-redo',
     'icon save': 'mdi mdi-content-save',
+    'icon apply': 'mdi mdi-content-save-check',
     'icon account': 'mdi mdi-account',
     'icon sql-file': 'mdi mdi-file',
     'icon web': 'mdi mdi-web',
@@ -127,6 +133,7 @@
     'icon data-deploy': 'mdi mdi-database-settings',
     'icon team-file': 'mdi mdi-account-file',
     'icon team-folder': 'mdi mdi-account-details',
+    'icon graphql': 'mdi mdi-graphql',
 
     'icon cloud-account': 'mdi mdi-account-remove-outline',
     'icon cloud-account-connected': 'mdi mdi-account-check-outline',
@@ -189,6 +196,8 @@
     'icon chevron-double-left': 'mdi mdi-chevron-double-left',
     'icon chevron-double-right': 'mdi mdi-chevron-double-right',
     'icon chevron-double-up': 'mdi mdi-chevron-double-up',
+    'icon graphql-field': 'mdi mdi-layers-outline',
+    'icon graphql-argument': 'mdi mdi-variable',
     'icon menu-right': 'mdi mdi-menu-right',
     'icon plugin': 'mdi mdi-toy-brick',
     'icon menu': 'mdi mdi-menu',
@@ -252,6 +261,7 @@
     'icon premium': 'mdi mdi-star',
     'icon upload': 'mdi mdi-upload',
     'icon limit': 'mdi mdi-car-speed-limiter',
+    'icon api': 'mdi mdi-api',
 
     'icon chart': 'mdi mdi-chart-bar',
     'icon cloud-connection': 'mdi mdi-cloud-lock',
@@ -267,6 +277,7 @@
     'img debug': 'mdi mdi-monitor color-icon-green',
     // 'img statusbar-ok': 'mdi mdi-check-circle color-on-statusbar-green',
     'img circular': 'mdi mdi-circular-saw color-icon-red',
+    'img api': 'mdi mdi-api color-icon-blue',
 
     'img archive': 'mdi mdi-table color-icon-gold',
     'img archive-folder': 'mdi mdi-database-outline color-icon-green',
@@ -322,6 +333,7 @@
     'img function': 'mdi mdi-function-variant',
     'img table-structure': 'mdi mdi-tools color-icon-blue',
     'img view-structure': 'mdi mdi-tools color-icon-magenta',
+    'img api-table': 'mdi mdi-table-large color-icon-magenta',
 
     'img sort-asc': 'mdi mdi-sort-alphabetical-ascending color-icon-green',
     'img sort-desc': 'mdi mdi-sort-alphabetical-descending color-icon-green',
@@ -364,12 +376,25 @@
     'img team-file': 'mdi mdi-account-file color-icon-red',
     'img team-folder': 'mdi mdi-account-details color-icon-blue',
     'img table-backup': 'mdi mdi-cube color-icon-yellow',
+    'img graphql': 'mdi mdi-graphql color-icon-magenta',
   };
 </script>
 
 {#if isSvgString}
   <span class="svg-inline" class:padLeft class:padRight {title} {style} on:click data-testid={$$props['data-testid']}>
-    {@html iconValue}
+    {@html sanitizedSvg}
+  </span>
+{:else if isTextIcon}
+  {@const textIconParts = iconValue.trim().split(' ')}
+  <span
+    class="text-icon"
+    style={`background-color:${textIconParts[2] || 'inherit'}`}
+    class:padLeft
+    class:padRight
+    on:click
+    data-testid={$$props['data-testid']}
+  >
+    {textIconParts[1]}
   </span>
 {:else}
   <span
@@ -400,5 +425,15 @@
 
   .padRight {
     margin-right: 0.25rem;
+  }
+
+  .text-icon {
+    font-size: 0.7em;
+    display: inline-block;
+    text-align: center;
+    border-radius: 3px;
+    margin-right: 4px;
+    font-weight: bold;
+    padding: 2px;
   }
 </style>

@@ -13,7 +13,10 @@ const dialect = {
   offsetFetchRangeSyntax: true,
   rowNumberOverPaging: true,
   useDatalengthForEmptyString(dataType) {
-    return dataType && ['text', 'ntext', 'image'].includes(dataType.toLowerCase());
+    return !!dataType && ['text', 'ntext', 'image'].includes(dataType.toLowerCase());
+  },
+  disableGroupingForDataType(dataType) {
+    return !!dataType && ['text', 'ntext', 'image'].includes(dataType.toLowerCase());
   },
   defaultSchemaName: 'dbo',
   multipleSchema: true,
@@ -162,6 +165,9 @@ const driver = {
       'singleDatabase',
       'isReadOnly',
       'useSeparateSchemas',
+      'defaultIsolationLevel',
+      'allowedDatabases',
+      'allowedDatabasesRegex',
     ].includes(field) ||
     (field == 'trustServerCertificate' && values.authType != 'sql' && values.authType != 'sspi') ||
     (field == 'windowsDomain' && values.authType != 'sql' && values.authType != 'sspi' && values.authType != 'msentra'),
@@ -176,7 +182,9 @@ const driver = {
   defaultPort: 1433,
   defaultAuthTypeName: 'tedious',
   supportsTransactions: true,
+  isolationLevels: ['READ UNCOMMITTED', 'READ COMMITTED', 'REPEATABLE READ', 'SNAPSHOT', 'SERIALIZABLE'],
   supportsIncrementalAnalysis: true,
+  defaultIsolationLevel: 'READ COMMITTED',
   // databaseUrlPlaceholder: 'e.g. server=localhost&authentication.type=default&authentication.type.user=myuser&authentication.type.password=pwd&options.database=mydb',
 
   getNewObjectTemplates() {

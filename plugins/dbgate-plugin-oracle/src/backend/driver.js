@@ -37,10 +37,18 @@ function zipDataRow(rowArray, columns) {
   return obj;
 }
 
+function nativeDateToIsoString(date) {
+  const pad = n => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
 function modifyRow(row, columns) {
   columns.forEach(col => {
-    if (Buffer.isBuffer(row[col.columnName])) {
-      row[col.columnName] = { $binary: { base64: row[col.columnName].toString('base64') } };
+    const val = row[col.columnName];
+    if (val instanceof Date) {
+      row[col.columnName] = nativeDateToIsoString(val);
+    } else if (Buffer.isBuffer(val)) {
+      row[col.columnName] = { $binary: { base64: val.toString('base64') } };
     }
   });
   return row;
@@ -99,7 +107,7 @@ const driver = {
   async close(dbhan) {
     return dbhan.client.close();
   },
-  async query(dbhan, sql) {
+  async query(dbhan, sql, options) {
     if (sql == null || sql.trim() == '') {
       return {
         rows: [],
@@ -112,7 +120,21 @@ const driver = {
       sql = mtrim[1];
     }
 
-    const res = await dbhan.client.execute(sql);
+    const commandTimeout = options?.commandTimeout;
+    let previousCallTimeout;
+    if (commandTimeout) {
+      previousCallTimeout = dbhan.client.callTimeout;
+      dbhan.client.callTimeout = parseInt(commandTimeout);
+    }
+
+    let res;
+    try {
+      res = await dbhan.client.execute(sql);
+    } finally {
+      if (commandTimeout) {
+        dbhan.client.callTimeout = previousCallTimeout || 0;
+      }
+    }
     try {
       const columns = extractOracleColumns(res.metaData);
       return { rows: (res.rows || []).map(row => modifyRow(zipDataRow(row, columns), columns)), columns };

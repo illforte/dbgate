@@ -78,6 +78,9 @@ const drivers = driverBases.map(driverBase => ({
     if (isReadOnly) {
       await this.query(dbhan, 'SET SESSION TRANSACTION READ ONLY');
     }
+    if (props.defaultIsolationLevel) {
+      await this.setTransactionIsolationLevel(dbhan, props.defaultIsolationLevel);
+    }
     return dbhan;
   },
   close(dbhan) {
@@ -105,9 +108,18 @@ const drivers = driverBases.map(driverBase => ({
       };
     }
 
+    const commandTimeout = options?.commandTimeout;
+    const queryOptions = {};
+    if (commandTimeout) {
+      queryOptions.timeout = parseInt(commandTimeout);
+    }
+
     return new Promise((resolve, reject) => {
-      dbhan.client.query(sql, function (error, results, fields) {
-        if (error) reject(error);
+      dbhan.client.query({ sql, ...queryOptions }, function (error, results, fields) {
+        if (error) {
+          reject(error);
+          return;
+        }
         const columns = extractColumns(fields);   
         resolve({ rows: results && columns && results.map && results.map(row => modifyRow(zipDataRow(row, columns), columns)), columns });
       });
@@ -242,6 +254,13 @@ const drivers = driverBases.map(driverBase => ({
 
   async killProcess(dbhan, processId) {
     await this.query(dbhan, `KILL ${processId}`);
+  },
+
+  async setTransactionIsolationLevel(dbhan, level) {
+    if (this.isolationLevels && level && !this.isolationLevels.includes(level)) {
+      throw new Error(`Isolation level "${level}" is not supported. Supported levels: ${this.isolationLevels.join(', ')}`);
+    }
+    await this.query(dbhan, `SET SESSION TRANSACTION ISOLATION LEVEL ${level}`);
   },
 
   async serverSummary(dbhan) {

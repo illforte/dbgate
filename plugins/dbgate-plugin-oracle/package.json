@@ -4,7 +4,7 @@
   "version": "7.0.0-alpha.1",
   "license": "GPL-3.0",
   "description": "Oracle connector plugin for DbGate",
-  "homepage": "https://dbgate.org",
+  "homepage": "https://www.dbgate.io",
   "repository": {
     "type": "git",
     "url": "https://github.com/dbgate/dbgate.git"
@@ -35,7 +35,7 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
-    "dbgate-query-splitter": "^4.11.9",
+    "dbgate-query-splitter": "^4.12.0",
     "dbgate-tools": "^7.0.0-alpha.1",
     "lodash": "^4.17.21"
   },

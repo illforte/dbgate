@@ -90,6 +90,21 @@ const databaseListLoader = ({ conid }) => ({
   errorValue: [],
 });
 
+const restApiInfoLoader = ({ conid }) => ({
+  url: 'rest-connections/get-api-info',
+  params: { conid },
+  reloadTrigger: { key: `rest-api-info-changed`, conid },
+  errorValue: null,
+});
+
+const restStatusLoader = ({ conid }) => ({
+  url: 'rest-connections/rest-status',
+  params: {},
+  reloadTrigger: { key: `rest-status-changed`, conid },
+  transform: value => value?.[conid] ?? null,
+  errorValue: null,
+});
+
 const serverVersionLoader = ({ conid }) => ({
   url: 'server-connections/version',
   params: { conid },
@@ -156,9 +171,9 @@ const installedPluginsLoader = () => ({
   reloadTrigger: { key: `installed-plugins-changed` },
 });
 
-const filesLoader = ({ folder }) => ({
+const filesLoader = ({ folder, parseFrontMatter = false }) => ({
   url: 'files/list',
-  params: { folder },
+  params: parseFrontMatter ? { folder, parseFrontMatter: true } : { folder },
   reloadTrigger: { key: `files-changed`, folder },
 });
 const allFilesLoader = () => ({
@@ -570,4 +585,18 @@ export function getFileThemes(args = {}) {
 }
 export function useFileThemes(args = {}) {
   return useCore(fileThemesLoader, args);
+}
+
+export function getRestApiInfo(args) {
+  return getCore(restApiInfoLoader, args);
+}
+export function useRestApiInfo(args) {
+  return useCore(restApiInfoLoader, args);
+}
+
+export function getRestStatus(args) {
+  return getCore(restStatusLoader, args);
+}
+export function useRestStatus(args) {
+  return useCore(restStatusLoader, args);
 }

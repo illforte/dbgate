@@ -1,4 +1,7 @@
 <script lang="ts" context="module">
+  import { getActiveComponent } from '../utility/createActivator';
+  import registerCommand from '../commands/registerCommand';
+  import { __t } from '../translations';
   const getCurrentDataForm = () => getActiveComponent('FormView');
 
   // registerCommand({
@@ -173,8 +176,6 @@
   import { getContext } from 'svelte';
 
   import invalidateCommands from '../commands/invalidateCommands';
-
-  import registerCommand from '../commands/registerCommand';
   import DataGridCell from '../datagrid/DataGridCell.svelte';
   import { dataGridRowHeight } from '../datagrid/DataGridRowHeightMeter.svelte';
   import InplaceEditor from '../datagrid/InplaceEditor.svelte';
@@ -191,13 +192,13 @@
   import { copyTextToClipboard, extractRowCopiedValue } from '../utility/clipboard';
   import { isCtrlOrCommandKey } from '../utility/common';
   import contextMenu, { getContextMenu, registerMenu } from '../utility/contextMenu';
-  import createActivator, { getActiveComponent } from '../utility/createActivator';
+  import createActivator from '../utility/createActivator';
   import createReducer from '../utility/createReducer';
   import keycodes from '../utility/keycodes';
   import resizeObserver from '../utility/resizeObserver';
   import openReferenceForm from './openReferenceForm';
   import { useSettings } from '../utility/metadataLoaders';
-  import { _t, __t } from '../translations';
+  import { _t } from '../translations';
 
   export let conid;
   export let database;
@@ -205,6 +206,8 @@
   export let setConfig;
   export let focusOnVisible = false;
   export let allRowCount;
+  export let allRowCountError = null;
+  export let onReloadRowCount = null;
   export let rowCountBefore;
   export let isLoading;
   export let grider;
@@ -236,12 +239,12 @@
 
   $: columnChunks = _.chunk(display?.formColumns || [], rowCount) as any[][];
 
-  $: rowCountInfo = getRowCountInfo(allRowCount, display);
+  $: rowCountInfo = getRowCountInfo(allRowCount, display, allRowCountError);
 
   const settingsValue = useSettings();
   $: gridColoringMode = $settingsValue?.['dataGrid.coloringMode'];
 
-  function getRowCountInfo(allRowCount) {
+  function getRowCountInfo(allRowCount, _display?, _allRowCountError?) {
     if (rowCountNotAvailable) {
       return _t('dataForm.rowCount', { defaultMessage: 'Row: {rowCount} / ???', values: { rowCount: ((display.config.formViewRecordNumber || 0) + 1).toLocaleString() } });
     }
@@ -250,6 +253,9 @@
         return _t('dataForm.outOfBounds', { defaultMessage: 'Out of bounds: {current} / {total}', values: { current: ((display.config.formViewRecordNumber || 0) + 1).toLocaleString(), total: allRowCount.toLocaleString() } });
       }
       return _t('dataForm.noData', { defaultMessage: 'No data' });
+    }
+    if (allRowCountError) {
+      return _t('dataForm.rowCountMany', { defaultMessage: 'Row: {current} / Many', values: { current: ((display.config.formViewRecordNumber || 0) + 1).toLocaleString() } });
     }
     if (allRowCount == null || display == null) return _t('dataForm.loadingRowCount', { defaultMessage: 'Loading row count...' });
     return _t('dataForm.rowCount', { defaultMessage: 'Row: {current} / {total}', values: { current: ((display.config.formViewRecordNumber || 0) + 1).toLocaleString(), total: allRowCount.toLocaleString() } });

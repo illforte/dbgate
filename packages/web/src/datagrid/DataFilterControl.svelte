@@ -32,6 +32,7 @@
   export let database = null;
   export let driver = null;
   export let jslid = null;
+  export let passAllRows = null;
   export let customCommandIcon = null;
   export let onCustomCommand = null;
   export let customCommandTooltip = null;
@@ -292,7 +293,7 @@
       schemaName: foreignKey.refSchemaName,
       multiselect: true,
       dataType,
-      onConfirm: keys => setFilter(keys.join(',')),
+      onConfirm: keys => setFilter(keys.map(x => getFilterValueExpression(x, dataType)).join(',')),
     });
   }
 
@@ -302,13 +303,14 @@
       database,
       driver,
       jslid,
+      passAllRows,
       multiselect: true,
       schemaName,
       pureName,
       field: columnName || uniqueName,
       formatterFunction,
       dataType,
-      onConfirm: keys => setFilter(keys.map(x => getFilterValueExpression(x)).join(',')),
+      onConfirm: keys => setFilter(keys.map(x => getFilterValueExpression(x, dataType)).join(',')),
     });
   }
 
@@ -397,7 +399,7 @@
           <FontIcon icon="icon dots-vertical" />
         </InlineButton>
       {/if}
-    {:else if jslid}
+    {:else if jslid || passAllRows}
       <InlineButton on:click={handleShowValuesModal} narrow square>
         <FontIcon icon="icon dots-vertical" />
       </InlineButton>

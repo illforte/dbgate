@@ -59,6 +59,7 @@ export interface QueryOptions {
   importSqlDump?: boolean;
   range?: { offset: number; limit: number };
   readonly?: boolean;
+  commandTimeout?: number;
 }
 
 export interface WriteTableOptions {
@@ -73,7 +74,7 @@ export interface WriteTableOptions {
 export interface EngineAuthType {
   title: string;
   name: string;
-  disabledFields: string[];
+  disabledFields?: string[];
 }
 
 export interface ReadCollectionOptions {
@@ -258,12 +259,20 @@ export interface EngineDriver<TClient = any, TDataBase = any> extends FilterBeha
   supportsTransactions?: boolean;
   implicitTransactions?: boolean; // transaction is started with first SQL command, no BEGIN TRANSACTION is needed
   premiumOnly?: boolean;
+  supportExecuteQuery?: boolean;
 
   collectionSingularLabel?: string;
   collectionPluralLabel?: string;
   collectionNameLabel?: string;
   newCollectionFormParams?: any[];
+  disableRenameCollection?: boolean;
   icon?: EngineDriverIcon;
+
+  apiServerUrl1Label?: string;
+  apiServerUrl1Placeholder?: string;
+  apiServerUrl2Label?: string;
+  apiServerUrl2Placeholder?: string;
+  loadApiServerUrl2Options?: boolean;
 
   supportedCreateDatabase?: boolean;
   showConnectionField?: (
@@ -405,6 +414,7 @@ export interface EngineDriver<TClient = any, TDataBase = any> extends FilterBeha
   ): { message: string; severity: 'info' | 'error' | 'debug' } | null;
   getNativeOperationFormArgs(operation: 'backup' | 'restore'): any[];
   getAdvancedConnectionFields(): any[];
+  sortCollectionDisplayColumns?(columns: any[]): any[];
 
   analyserClass?: any;
   dumperClass?: any;
@@ -414,6 +424,10 @@ export interface EngineDriver<TClient = any, TDataBase = any> extends FilterBeha
     engine: string;
     conid?: string;
   };
+
+  setTransactionIsolationLevel?(dbhan: DatabaseHandle<TClient, TDataBase>, level: string): Promise<void>;
+  isolationLevels?: string[];
+  defaultIsolationLevel?: string;
 }
 
 export interface DatabaseModification {

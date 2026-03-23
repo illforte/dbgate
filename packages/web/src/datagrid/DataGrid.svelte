@@ -1,4 +1,5 @@
 <script lang="ts" context="module">
+  import { __t } from '../translations';
   const getCurrentEditor = () => getActiveComponent('DataGrid');
 
   registerCommand({
@@ -79,9 +80,10 @@
   import registerCommand from '../commands/registerCommand';
   import { registerMenu } from '../utility/contextMenu';
   import { getLocalStorage, setLocalStorage } from '../utility/storageCache';
-  import { __t, _t } from '../translations';
+  import { _t } from '../translations';
   import { isProApp } from '../utility/proTools';
   import CellDataWidget from '../widgets/CellDataWidget.svelte';
+  import { useSettings } from '../utility/metadataLoaders';
 
   export let config;
   export let setConfig;
@@ -123,6 +125,7 @@
   let cellViewWidth;
   const collapsedLeftColumnStore =
     getContext('collapsedLeftColumnStore') || writable(getLocalStorage('dataGrid_collapsedLeftColumn', false));
+  const settings = useSettings();
 
   $: isFormView = !!config?.isFormView;
   $: isJsonView = !!config?.isJsonView;
@@ -261,7 +264,9 @@
       <svelte:fragment slot="1">
         <HorizontalSplitter
           initialSizeRight={getInitialCellViewWidth()}
-          onChangeSize={value => (cellViewWidth = value)}
+          onChangeSize={(leftSize, rightSize) => {
+            cellViewWidth = rightSize;
+          }}
           isSplitter={cellDataViewVisible && !isFormView}
         >
           <svelte:fragment slot="1">
@@ -283,7 +288,11 @@
                   if (onPublishedCellsChanged) {
                     onPublishedCellsChanged(value);
                   }
-                  if (value[0]?.isSelectedFullRow && !isFormView) {
+                  if (
+                    value[0]?.isSelectedFullRow &&
+                    !isFormView &&
+                    !$settings?.['dataGrid.disableCellDataViewAutoOpen']
+                  ) {
                     cellDataViewVisible = true;
                   }
                 }}

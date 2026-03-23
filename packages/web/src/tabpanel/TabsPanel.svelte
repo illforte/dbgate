@@ -1,4 +1,14 @@
 <script lang="ts" context="module">
+  import { getLockedDatabaseMode, getCurrentDatabase, getOpenedTabs, openedTabs, getActiveTabId, cloudConnectionsStore, getOpenedModals, getActiveTab } from '../stores';
+  import { showModal } from '../modals/modalTools';
+  import CloseTabModal from '../modals/CloseTabModal.svelte';
+  import _ from 'lodash';
+  import { getConnectionLabel } from 'dbgate-tools';
+  import { setSelectedTab } from '../utility/common';
+  import registerCommand from '../commands/registerCommand';
+  import { isElectronAvailable } from '../utility/getElectron';
+  import FavoriteModal from '../modals/FavoriteModal.svelte';
+  import { __t, _t } from '../translations';
   const getCurrentValueMarker: any = {};
 
   export function shouldShowTab(tab, lockedDbModeArg = getCurrentValueMarker, currentDbArg = getCurrentValueMarker) {
@@ -190,7 +200,9 @@
   function getTabDbName(tab, connectionList, cloudConnectionsStore) {
     if (tab.tabComponent == 'ConnectionTab') return _t('common.connections', { defaultMessage: 'Connections' });
     if (tab.tabComponent?.startsWith('Admin')) return _t('tab.administration', { defaultMessage: 'Administration' });
-    if (tab.props && tab.props.conid && tab.props.database) return tab.props.database;
+    if (tab.props && tab.props.conid && tab.props.database && tab.props.database != '_api_database_') {
+      return tab.props.database;
+    }
     if (tab.props && tab.props.conid) {
       const connection =
         connectionList?.find(x => x._id == tab.props.conid) ?? cloudConnectionsStore?.[tab.props.conid];
@@ -202,7 +214,7 @@
   }
 
   function getTabDbServer(tab, connectionList, cloudConnectionsStore) {
-    if (tab.props && tab.props.conid && tab.props.database) {
+    if (tab.props && tab.props.conid && tab.props.database && tab.props.database != '_api_database_') {
       const connection =
         connectionList?.find(x => x._id == tab.props.conid) ?? cloudConnectionsStore?.[tab.props.conid];
       if (connection) return getConnectionLabel(connection, { allowExplicitDatabase: false });
@@ -214,6 +226,7 @@
   function getDbIcon(key) {
     if (key) {
       if (key.startsWith('database://')) return 'icon database';
+      if (key.startsWith('api://')) return 'icon api';
       if (key.startsWith('archive://')) return 'icon archive';
       if (key.startsWith('server://')) return 'icon server';
       if (key.startsWith('connections.')) return 'icon connection';
@@ -316,50 +329,25 @@
 </script>
 
 <script lang="ts">
-  import _ from 'lodash';
   import { tick } from 'svelte';
-  import registerCommand from '../commands/registerCommand';
   import FontIcon from '../icons/FontIcon.svelte';
-  import FavoriteModal from '../modals/FavoriteModal.svelte';
-  import { showModal } from '../modals/modalTools';
   import newQuery from '../query/newQuery';
   import appObjectTypes from '../appobj';
 
-  import {
-    currentDatabase,
-    getActiveTab,
-    getOpenedTabs,
-    openedTabs,
-    activeTabId,
-    getActiveTabId,
-    getCurrentDatabase,
-    lockedDatabaseMode,
-    getLockedDatabaseMode,
-    draggingDbGroup,
-    draggingDbGroupTarget,
-    draggingTab,
-    draggingTabTarget,
-    getOpenedModals,
-    cloudConnectionsStore,
-  } from '../stores';
+  import { currentDatabase, activeTabId, lockedDatabaseMode, draggingDbGroup, draggingDbGroupTarget, draggingTab, draggingTabTarget } from '../stores';
   import tabs from '../tabs';
-  import { setSelectedTab, switchCurrentDatabase } from '../utility/common';
+  import { switchCurrentDatabase } from '../utility/common';
   import contextMenu from '../utility/contextMenu';
-  import { isElectronAvailable } from '../utility/getElectron';
   import { getConnectionInfo, useConnectionList, useSettings } from '../utility/metadataLoaders';
   import { duplicateTab, getTabDbKey, sortTabs, groupTabs } from '../utility/openNewTab';
   import { useConnectionColorFactory } from '../utility/useConnectionColor';
   import TabCloseButton from '../elements/TabCloseButton.svelte';
-  import CloseTabModal from '../modals/CloseTabModal.svelte';
   import SwitchDatabaseModal from '../modals/SwitchDatabaseModal.svelte';
-  import { getConnectionLabel } from 'dbgate-tools';
   import { handleAfterTabClick } from '../utility/changeCurrentDbByTab';
   import { getBoolSettingsValue } from '../settings/settingsTools';
   import NewObjectModal from '../modals/NewObjectModal.svelte';
   import { isProApp } from '../utility/proTools';
   import { openWebLink } from '../utility/simpleTools';
-  import { __t, _t } from '../translations';
-
   export let multiTabIndex;
   export let shownTab;
 
@@ -369,7 +357,9 @@
 
   $: currentDbKey =
     $currentDatabase && $currentDatabase.name && $currentDatabase.connection
-      ? `database://${$currentDatabase.name}-${$currentDatabase.connection._id}`
+      ? $currentDatabase.name == '_api_database_'
+        ? `api://${$currentDatabase.connection._id}`
+        : `database://${$currentDatabase.name}-${$currentDatabase.connection._id}`
       : $currentDatabase && $currentDatabase.connection
         ? `server://${$currentDatabase.connection._id}`
         : '_no';

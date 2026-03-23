@@ -1,4 +1,5 @@
 <script context="module">
+  import { _t } from '../translations';
   export const extractKey = data => data._id;
   export const createMatcher =
     (filter, cfg = DEFAULT_CONNECTION_SEARCH_SETTINGS) =>
@@ -22,6 +23,7 @@
   export function openConnection(connection, disableExpand = false) {
     if (connection.singleDatabase) {
       if (getOpenedSingleDatabaseConnections().includes(connection._id)) {
+        switchCurrentDatabase({ connection, name: connection.defaultDatabase });
         return;
       }
     } else {
@@ -140,9 +142,7 @@
   import { getConnectionLabel } from 'dbgate-tools';
   import hasPermission from '../utility/hasPermission';
   import { switchCurrentDatabase } from '../utility/common';
-  import { getConnectionClickActionSetting } from '../settings/settingsTools';
-  import { _t } from '../translations';
-  import { isProApp } from '../utility/proTools';
+  import { getConnectionClickActionSetting } from '../settings/settingsTools';  import { isProApp } from '../utility/proTools';
   import { currentThemeType } from '../plugins/themes';
   import { getDriverIcon } from '../utility/driverIcons';
 
@@ -358,29 +358,44 @@
             },
         ],
       { divider: true },
-      !data.singleDatabase && [
-        hasPermission(`dbops/query`) && {
-          onClick: handleNewQuery,
-          text: _t('connection.newQuery', { defaultMessage: 'New Query (server)' }),
-          isNewQuery: true,
-        },
-        $openedConnections.includes(data._id) &&
-          data.status && {
-            text: _t('connection.refresh', { defaultMessage: 'Refresh' }),
-            onClick: handleRefresh,
+
+      driver?.databaseEngineTypes?.includes('graphql') && {
+        onClick: () =>
+          openNewTab({
+            title: 'GraphQL Query',
+            icon: 'img api',
+            tabComponent: 'GraphQlQueryTab',
+            props: {
+              conid: data._id,
+            },
+          }),
+        text: _t('connection.apiQuery', { defaultMessage: 'API Query' }),
+      },
+
+      !data.singleDatabase &&
+        driver?.supportExecuteQuery && [
+          hasPermission(`dbops/query`) && {
+            onClick: handleNewQuery,
+            text: _t('connection.newQuery', { defaultMessage: 'New Query (server)' }),
+            isNewQuery: true,
           },
-        hasPermission(`dbops/createdb`) &&
           $openedConnections.includes(data._id) &&
-          driver?.supportedCreateDatabase &&
-          !data.isReadOnly && {
-            text: _t('connection.createDatabase', { defaultMessage: 'Create database' }),
-            onClick: handleCreateDatabase,
+            data.status && {
+              text: _t('connection.refresh', { defaultMessage: 'Refresh' }),
+              onClick: handleRefresh,
+            },
+          hasPermission(`dbops/createdb`) &&
+            $openedConnections.includes(data._id) &&
+            driver?.supportedCreateDatabase &&
+            !data.isReadOnly && {
+              text: _t('connection.createDatabase', { defaultMessage: 'Create database' }),
+              onClick: handleCreateDatabase,
+            },
+          driver?.supportsServerSummary && {
+            text: _t('connection.serverSummary', { defaultMessage: 'Server summary' }),
+            onClick: handleServerSummary,
           },
-        driver?.supportsServerSummary && {
-          text: _t('connection.serverSummary', { defaultMessage: 'Server summary' }),
-          onClick: handleServerSummary,
-        },
-      ],
+        ],
       data.singleDatabase && [
         { divider: true },
         getDatabaseMenuItems(

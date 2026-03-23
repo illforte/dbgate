@@ -88,6 +88,12 @@ const dialect = {
     'year',
   ],
 
+  indexTypes: [
+    { value: 'normal', label: 'Normal' },
+    { value: 'unique', label: 'Unique', isUnique: true },
+    { value: 'fulltext', label: 'Fulltext', indexType: 'FULLTEXT' },
+  ],
+
   createColumnViewExpression(columnName, dataType, source, alias) {
     if (dataType && spatialTypes.includes(dataType.toUpperCase())) {
       return {
@@ -156,7 +162,7 @@ const mysqlDialect = {
 const mysqlDriverBase = {
   ...driverBase,
   showConnectionField: (field, values) => {
-    if (['authType', 'user', 'defaultDatabase', 'singleDatabase', 'isReadOnly'].includes(field)) {
+    if (['authType', 'user', 'defaultDatabase', 'singleDatabase', 'isReadOnly', 'allowedDatabases', 'allowedDatabasesRegex', 'defaultIsolationLevel'].includes(field)) {
       return true;
     }
 
@@ -188,7 +194,9 @@ const mysqlDriverBase = {
   defaultAuthTypeName: 'hostPort',
   defaultSocketPath: '/var/run/mysqld/mysqld.sock',
   supportsTransactions: true,
+  isolationLevels: ['READ UNCOMMITTED', 'READ COMMITTED', 'REPEATABLE READ', 'SERIALIZABLE'],
   supportsIncrementalAnalysis: true,
+  defaultIsolationLevel: 'REPEATABLE READ',
 
   getNewObjectTemplates() {
     return [

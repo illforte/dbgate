@@ -123,7 +123,9 @@ const dialect = {
 const postgresDriverBase = {
   ...driverBase,
   supportsTransactions: true,
+  isolationLevels: ['READ COMMITTED', 'REPEATABLE READ', 'SERIALIZABLE'],
   supportsIncrementalAnalysis: true,
+  defaultIsolationLevel: 'READ COMMITTED',
   dumperClass: Dumper,
   dialect,
   // showConnectionField: (field, values) =>
@@ -142,7 +144,7 @@ const postgresDriverBase = {
   databaseUrlPlaceholder: 'e.g. postgresql://user:password@localhost:5432/default_database',
 
   showConnectionField: (field, values) => {
-    const allowedFields = ['useDatabaseUrl', 'authType', 'user', 'isReadOnly', 'useSeparateSchemas'];
+    const allowedFields = ['useDatabaseUrl', 'authType', 'user', 'isReadOnly', 'useSeparateSchemas', 'allowedDatabases', 'allowedDatabasesRegex', 'defaultIsolationLevel'];
 
     if (values.authType == 'awsIam') {
       allowedFields.push('awsRegion', 'secretAccessKey', 'accessKeyId');
@@ -424,7 +426,7 @@ const redshiftDriver = {
   databaseUrlPlaceholder: 'e.g. redshift-cluster-1.xxxx.redshift.amazonaws.com:5439/dev',
   icon: redshiftIcon,
   showConnectionField: (field, values) =>
-    ['databaseUrl', 'user', 'password', 'isReadOnly', 'useSeparateSchemas'].includes(field),
+    ['databaseUrl', 'user', 'password', 'isReadOnly', 'useSeparateSchemas', 'allowedDatabases', 'allowedDatabasesRegex'].includes(field),
   beforeConnectionSave: connection => {
     const { databaseUrl } = connection;
     if (databaseUrl) {

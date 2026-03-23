@@ -1,4 +1,5 @@
 <script lang="ts" context="module">
+  import { _t } from '../translations';
   import { copyTextToClipboard } from '../utility/clipboard';
 
   export const extractKey = props => props.name;
@@ -221,6 +222,18 @@
       });
     };
 
+    const handleGraphQlChat = () => {
+      openNewTab({
+        title: 'GraphQL Chat',
+        icon: 'img ai',
+        tabComponent: 'GraphQlChatTab',
+        props: {
+          conid: connection._id,
+          database: name,
+        },
+      });
+    };
+
     const handleCompareWithCurrentDb = () => {
       openNewTab(
         {
@@ -430,6 +443,7 @@ await dbgateApi.executeQuery(${JSON.stringify(
 
     return [
       hasPermission(`dbops/query`) &&
+        driver?.supportExecuteQuery &&
         isAllowedDatabaseRunScript(databasePermissionRole) && {
           onClick: handleNewQuery,
           text: _t('database.newQuery', { defaultMessage: 'New query' }),
@@ -532,6 +546,12 @@ await dbgateApi.executeQuery(${JSON.stringify(
         hasPermission('dbops/chat') && {
           onClick: handleDatabaseChat,
           text: _t('database.databaseChat', { defaultMessage: 'Database chat' }),
+        },
+      isProApp() &&
+        driver?.databaseEngineTypes?.includes('graphql') &&
+        hasPermission('dbops/chat') && {
+          onClick: handleGraphQlChat,
+          text: _t('database.graphqlChat', { defaultMessage: 'GraphQL chat' }),
         },
       isSqlOrDoc &&
         _.get($currentDatabase, 'connection._id') &&
@@ -667,10 +687,7 @@ await dbgateApi.executeQuery(${JSON.stringify(
   import ChooseArchiveFolderModal from '../modals/ChooseArchiveFolderModal.svelte';
   import { extractShellConnection } from '../impexp/createImpExpScript';
   import { getNumberIcon } from '../icons/FontIcon.svelte';
-  import { getDatabaseClickActionSetting } from '../settings/settingsTools';
-  import { _t } from '../translations';
-
-  export let data;
+  import { getDatabaseClickActionSetting } from '../settings/settingsTools';  export let data;
   export let passProps;
   export let passExtInfo = undefined;
   export let passIcon = undefined;
