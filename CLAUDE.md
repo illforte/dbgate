@@ -3,7 +3,7 @@
 Fork of [dbgate/dbgate](https://github.com/dbgate/dbgate) (MIT License) with premium features unlocked for self-hosted use.
 
 - **Branch:** `premium-clean`
-- **Image:** `ghcr.io/illforte/dbgate-premium:latest`
+- **Image:** `ghcr.io/weretradeIT/dbgate-premium:latest`
 - **Deployed at:** https://dbquery.lair404.xyz (CF Access AUD: `67a9d75466678072df7beab8ced0292f8c6189d0b9a99a0e04bbb5b12c2db664`)
 - **Deploy path:** `/opt/weretrade/dbgate/` on lair404, via `tools/dbgate/docker-compose.oidc.yml` (monorepo)
 
@@ -29,7 +29,7 @@ Webpack bundling breaks dynamic plugin `require()` at runtime (`webpackEmptyCont
 ```bash
 docker buildx build --platform linux/amd64 --no-cache \
   -f docker/Dockerfile.unbundled --push \
-  -t ghcr.io/illforte/dbgate-premium:latest .
+  -t ghcr.io/weretradeIT/dbgate-premium:latest .
 ```
 
 - ALWAYS `--platform linux/amd64` (lair404 is AMD64, Mac is ARM)
@@ -62,7 +62,7 @@ Cherry-pick strategy (not rebase — too many structural changes upstream). Test
 
 ## Git
 
-- Remote: `illforte/dbgate-fork`
+- Remote: `weretradeIT/dbgate-fork`
 - Branch: `premium-clean`
 - NEVER `git push --force` to main
 - ALWAYS stage specific files, NEVER `git add .`

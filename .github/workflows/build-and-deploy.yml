@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: illforte/dbgate-premium
+  IMAGE_NAME: weretradeIT/dbgate-premium
 
 jobs:
   build-and-deploy:

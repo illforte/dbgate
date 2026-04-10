@@ -3,7 +3,7 @@
 **Fork of:** https://github.com/dbgate/dbgate
 **License:** MIT (self-hosted use)
 **Branch:** `premium-clean`
-**Image:** `ghcr.io/illforte/dbgate-premium:latest`
+**Image:** `ghcr.io/weretradeIT/dbgate-premium:latest`
 **Deployed at:** https://dbquery.lair404.xyz
 
 ---
@@ -57,7 +57,7 @@ Currently unused - we build locally with `docker buildx` for faster iteration.
 - All premium features unlocked (no upgrade prompts, no trial countdown)
 - Unbundled API build solves plugin loading for all database drivers
 - PostgreSQL, MySQL, Redis, ClickHouse, MongoDB, SQLite plugins all work
-- Built and deployed as `ghcr.io/illforte/dbgate-premium:latest` (linux/amd64)
+- Built and deployed as `ghcr.io/weretradeIT/dbgate-premium:latest` (linux/amd64)
 
 ---
 
@@ -66,7 +66,7 @@ Currently unused - we build locally with `docker buildx` for faster iteration.
 ```bash
 # Build for linux/amd64 and push to GHCR
 docker buildx build --platform linux/amd64 --no-cache \
-  -t ghcr.io/illforte/dbgate-premium:latest \
+  -t ghcr.io/weretradeIT/dbgate-premium:latest \
   -f docker/Dockerfile.unbundled --push .
 ```
 

@@ -5,11 +5,11 @@ globs: docker/**,Dockerfile*
 
 - ALWAYS build with `--platform linux/amd64` (lair404 is AMD64, Mac is ARM)
 - MUST use `Dockerfile.unbundled` — bundled Dockerfile breaks plugin loading
-- Image: `ghcr.io/illforte/dbgate-premium:latest`
+- Image: `ghcr.io/weretradeIT/dbgate-premium:latest`
 - GHCR push: `gh auth refresh -h github.com -s write:packages` first
 
 ```bash
-docker buildx build --platform linux/amd64 --no-cache -f docker/Dockerfile.unbundled --push -t ghcr.io/illforte/dbgate-premium:latest .
+docker buildx build --platform linux/amd64 --no-cache -f docker/Dockerfile.unbundled --push -t ghcr.io/weretradeIT/dbgate-premium:latest .
 ```
 
 ## Volume Mount
