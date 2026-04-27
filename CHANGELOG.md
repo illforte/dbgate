@@ -9,6 +9,10 @@ Builds:
 - linux - application for linux
 - win - application for Windows
 
+## Unreleased
+
+- ADDED: bounded `.ai/repo/owner-dev-host.json` contract so the fork now has a mandatory `h0menode` first-stage preview gate before any wider runtime/promote path
+
 ## 7.1.4
 
 - FIXED: NPM installation failure #1375
