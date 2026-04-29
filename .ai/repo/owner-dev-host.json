@@ -5,7 +5,7 @@
   "commandCwd": ".",
   "defaultBranch": "premium-clean",
   "defaultPort": 4182,
-  "installCommand": "corepack yarn install --ignore-scripts",
+  "installCommand": "corepack yarn install --ignore-scripts --frozen-lockfile",
   "buildCommand": "corepack yarn build:lib && corepack yarn build:web",
   "startCommand": "npx sirv packages/web/public --host ${PREVIEW_HOST} --port ${PREVIEW_PORT}",
   "healthUrl": "http://${PREVIEW_HOST}:${PREVIEW_PORT}/",
