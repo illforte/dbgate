@@ -3,7 +3,7 @@
   "repoSlug": "dbgate-fork",
   "repoRoot": "weretradeIT/dbgate-fork",
   "commandCwd": ".",
-  "defaultBranch": "master",
+  "defaultBranch": "premium-clean",
   "defaultPort": 4182,
   "installCommand": "yarn install --ignore-scripts",
   "buildCommand": "yarn build:lib && yarn build:web",

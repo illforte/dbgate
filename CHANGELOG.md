@@ -12,6 +12,7 @@ Builds:
 ## Unreleased
 
 - ADDED: bounded `.ai/repo/owner-dev-host.json` contract so the fork now has a mandatory `h0menode` first-stage preview gate before any wider runtime/promote path
+- CHANGED: aligned the `h0menode` owner-dev contract to track `premium-clean`, matching the actual fork workflow and the host auto-sync branch
 
 ## 7.1.4
 
