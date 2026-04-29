@@ -9,11 +9,11 @@
   "buildCommand": "corepack yarn build:lib && corepack yarn build:web",
   "startCommand": "npx sirv packages/web/public --host ${PREVIEW_HOST} --port ${PREVIEW_PORT}",
   "healthUrl": "http://${PREVIEW_HOST}:${PREVIEW_PORT}/",
-  "syncMode": "rsync-mirror",
+  "syncMode": "clean-commit-only",
   "processMode": "launchd",
   "activationClass": "internal-tool-ui",
   "rolloutWave": 3,
   "retentionHours": 96,
   "desiredExposeMode": "mesh-ingress",
-  "notes": "Bounded first-stage h0menode preview for the DbGate web UI. This gate validates the built frontend shell on h0menode before any broader runtime or sidecar story, and it may intentionally run from a dirty-overlay source tree when local iteration needs it."
+  "notes": "Bounded first-stage h0menode preview for the DbGate web UI. This gate validates the built frontend shell on h0menode before any broader runtime or sidecar story, and it now defaults to clean-commit-only sync so production-facing provenance can stay exact when the repo is promoted from its first-stage proof."
 }
