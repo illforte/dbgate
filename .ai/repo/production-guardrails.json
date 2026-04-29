@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "repoSlug": "dbgate-fork",
+  "description": "Required h0menode guardrail lanes before DbGate promotion can advance beyond release-tag handoff.",
+  "lanes": [
+    {
+      "id": "translations",
+      "description": "Verify translation metadata before build output is promoted.",
+      "command": "corepack yarn translations:check",
+      "commandCwd": ".",
+      "timeoutMs": 900000
+    },
+    {
+      "id": "build",
+      "description": "Build shared libraries and the web shell exactly as the first-stage preview expects.",
+      "command": "corepack yarn build:lib && corepack yarn build:web",
+      "commandCwd": ".",
+      "timeoutMs": 1800000
+    }
+  ]
+}
