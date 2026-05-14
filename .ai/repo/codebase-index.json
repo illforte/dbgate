@@ -1,0 +1,651 @@
+{
+  "schemaVersion": 2,
+  "version": "2.0.0",
+  "adapter": "yarn-monorepo-v1",
+  "lastUpdated": "2026-04-19",
+  "repo": {
+    "slug": "dbgate-fork",
+    "name": "dbgate-all",
+    "purpose": "<img src=\"https://raw.githubusercontent.com/dbgate/dbgate/master/app/icon.png\" width=\"64\" align=\"right\"/",
+    "rootPath": ".",
+    "defaultAppType": "internal"
+  },
+  "units": [
+    {
+      "name": "dbgate",
+      "kind": "package",
+      "path": "app",
+      "purpose": "Opensource database administration tool",
+      "entrypoints": [
+        "src/electron.js"
+      ],
+      "framework": "Node",
+      "aliases": [
+        "dbgate",
+        "app"
+      ],
+      "packageName": "dbgate"
+    },
+    {
+      "name": "e2e-tests",
+      "kind": "package",
+      "path": "e2e-tests",
+      "purpose": "e2e-tests package",
+      "entrypoints": [
+        "index.js"
+      ],
+      "framework": "Node",
+      "aliases": [
+        "e2e-tests"
+      ],
+      "packageName": "e2e-tests"
+    },
+    {
+      "name": "dbgate-integration-tests",
+      "kind": "package",
+      "path": "integration-tests",
+      "purpose": "dbgate-integration-tests package",
+      "framework": "Node",
+      "aliases": [
+        "dbgate-integration-tests",
+        "integration-tests"
+      ],
+      "packageName": "dbgate-integration-tests"
+    },
+    {
+      "name": "dbgate-aigwmock",
+      "kind": "package",
+      "path": "packages/aigwmock",
+      "purpose": "Mock AI Gateway server for E2E testing",
+      "entrypoints": [
+        "src/index.js"
+      ],
+      "framework": "Express",
+      "aliases": [
+        "dbgate-aigwmock",
+        "aigwmock"
+      ],
+      "packageName": "dbgate-aigwmock"
+    },
+    {
+      "name": "dbgate-api",
+      "kind": "package",
+      "path": "packages/api",
+      "purpose": "Allows run DbGate data-manipulation scripts.",
+      "entrypoints": [
+        "src/index.js"
+      ],
+      "framework": "Express",
+      "aliases": [
+        "dbgate-api",
+        "api"
+      ],
+      "packageName": "dbgate-api"
+    },
+    {
+      "name": "dbgate-datalib",
+      "kind": "package",
+      "path": "packages/datalib",
+      "purpose": "dbgate-datalib package",
+      "entrypoints": [
+        "lib/index.js",
+        "src/index.ts"
+      ],
+      "framework": "Node",
+      "aliases": [
+        "dbgate-datalib",
+        "datalib"
+      ],
+      "packageName": "dbgate-datalib"
+    },
+    {
+      "name": "dbmodel",
+      "kind": "package",
+      "path": "packages/dbmodel",
+      "purpose": "Deploy, load or build script from model of SQL database",
+      "framework": "Node",
+      "aliases": [
+        "dbmodel"
+      ],
+      "packageName": "dbmodel"
+    },
+    {
+      "name": "dbgate-filterparser",
+      "kind": "package",
+      "path": "packages/filterparser",
+      "purpose": "dbgate-filterparser package",
+      "entrypoints": [
+        "lib/index.js",
+        "src/index.ts"
+      ],
+      "framework": "Node",
+      "aliases": [
+        "dbgate-filterparser",
+        "filterparser"
+      ],
+      "packageName": "dbgate-filterparser"
+    },
+    {
+      "name": "dbgate-rest",
+      "kind": "package",
+      "path": "packages/rest",
+      "purpose": "REST API support for DbGate",
+      "entrypoints": [
+        "lib/index.js",
+        "src/index.ts"
+      ],
+      "framework": "Node",
+      "aliases": [
+        "dbgate-rest",
+        "rest"
+      ],
+      "packageName": "dbgate-rest"
+    },
+    {
+      "name": "dbgate-serve",
+      "kind": "package",
+      "path": "packages/serve",
+      "purpose": "Opensource database administration tool - web interface",
+      "framework": "Node",
+      "aliases": [
+        "dbgate-serve",
+        "serve"
+      ],
+      "packageName": "dbgate-serve"
+    },
+    {
+      "name": "dbgate-sqltree",
+      "kind": "package",
+      "path": "packages/sqltree",
+      "purpose": "JavaScript/TypeScript SQL query-builder library",
+      "entrypoints": [
+        "lib/index.js",
+        "src/index.ts"
+      ],
+      "framework": "Node",
+      "aliases": [
+        "dbgate-sqltree",
+        "sqltree"
+      ],
+      "packageName": "dbgate-sqltree"
+    },
+    {
+      "name": "dbgate-tools",
+      "kind": "package",
+      "path": "packages/tools",
+      "purpose": "Auxiliary tools for other DbGate packages.",
+      "entrypoints": [
+        "lib/index.js",
+        "src/index.ts"
+      ],
+      "framework": "Node",
+      "aliases": [
+        "dbgate-tools",
+        "tools"
+      ],
+      "packageName": "dbgate-tools"
+    },
+    {
+      "name": "dbgate-types",
+      "kind": "package",
+      "path": "packages/types",
+      "purpose": "Typescript definitions for DbGate app",
+      "framework": "Node",
+      "aliases": [
+        "dbgate-types",
+        "types"
+      ],
+      "packageName": "dbgate-types"
+    },
+    {
+      "name": "dbgate-web",
+      "kind": "frontend",
+      "path": "packages/web",
+      "purpose": "This package is used internally by DbGate",
+      "framework": "Node",
+      "aliases": [
+        "dbgate-web",
+        "web"
+      ],
+      "type": "internal",
+      "packageName": "dbgate-web"
+    },
+    {
+      "name": "dbgate-plugin-cassandra",
+      "kind": "package",
+      "path": "plugins/dbgate-plugin-cassandra",
+      "purpose": "cassandra connector for DbGate",
+      "entrypoints": [
+        "dist/backend.js"
+      ],
+      "framework": "Node",
+      "aliases": [
+        "dbgate-plugin-cassandra"
+      ],
+      "packageName": "dbgate-plugin-cassandra"
+    },
+    {
+      "name": "dbgate-plugin-clickhouse",
+      "kind": "package",
+      "path": "plugins/dbgate-plugin-clickhouse",
+      "purpose": "Clickhouse connector for DbGate",
+      "entrypoints": [
+        "dist/backend.js"
+      ],
+      "framework": "Node",
+      "aliases": [
+        "dbgate-plugin-clickhouse"
+      ],
+      "packageName": "dbgate-plugin-clickhouse"
+    },
+    {
+      "name": "dbgate-plugin-csv",
+      "kind": "package",
+      "path": "plugins/dbgate-plugin-csv",
+      "purpose": "CSV import/export plugin for DbGate",
+      "entrypoints": [
+        "dist/backend.js"
+      ],
+      "framework": "Node",
+      "aliases": [
+        "dbgate-plugin-csv"
+      ],
+      "packageName": "dbgate-plugin-csv"
+    },
+    {
+      "name": "dbgate-plugin-dbf",
+      "kind": "package",
+      "path": "plugins/dbgate-plugin-dbf",
+      "purpose": "DBF import/export plugin for DbGate",
+      "entrypoints": [
+        "dist/backend.js"
+      ],
+      "framework": "Node",
+      "aliases": [
+        "dbgate-plugin-dbf"
+      ],
+      "packageName": "dbgate-plugin-dbf"
+    },
+    {
+      "name": "dbgate-plugin-duckdb",
+      "kind": "package",
+      "path": "plugins/dbgate-plugin-duckdb",
+      "purpose": "DuckDB connect plugin for DbGate",
+      "entrypoints": [
+        "dist/backend.js"
+      ],
+      "framework": "Node",
+      "aliases": [
+        "dbgate-plugin-duckdb"
+      ],
+      "packageName": "dbgate-plugin-duckdb"
+    },
+    {
+      "name": "dbgate-plugin-excel",
+      "kind": "package",
+      "path": "plugins/dbgate-plugin-excel",
+      "purpose": "MS Excel import/export plugin for DbGate",
+      "entrypoints": [
+        "dist/backend.js"
+      ],
+      "framework": "Node",
+      "aliases": [
+        "dbgate-plugin-excel"
+      ],
+      "packageName": "dbgate-plugin-excel"
+    },
+    {
+      "name": "dbgate-plugin-firebird",
+      "kind": "package",
+      "path": "plugins/dbgate-plugin-firebird",
+      "purpose": "firebirdQL connector plugin for DbGate",
+      "entrypoints": [
+        "dist/backend.js"
+      ],
+      "framework": "Node",
+      "aliases": [
+        "dbgate-plugin-firebird"
+      ],
+      "packageName": "dbgate-plugin-firebird"
+    },
+    {
+      "name": "dbgate-plugin-mongo",
+      "kind": "package",
+      "path": "plugins/dbgate-plugin-mongo",
+      "purpose": "MongoDB connect plugin for DbGate",
+      "entrypoints": [
+        "dist/backend.js"
+      ],
+      "framework": "Node",
+      "aliases": [
+        "dbgate-plugin-mongo"
+      ],
+      "packageName": "dbgate-plugin-mongo"
+    },
+    {
+      "name": "dbgate-plugin-mssql",
+      "kind": "package",
+      "path": "plugins/dbgate-plugin-mssql",
+      "purpose": "MS SQL connect plugin for DbGate",
+      "entrypoints": [
+        "dist/backend.js"
+      ],
+      "framework": "Node",
+      "aliases": [
+        "dbgate-plugin-mssql"
+      ],
+      "packageName": "dbgate-plugin-mssql"
+    },
+    {
+      "name": "dbgate-plugin-mysql",
+      "kind": "package",
+      "path": "plugins/dbgate-plugin-mysql",
+      "purpose": "MySQL connect plugin for DbGate",
+      "entrypoints": [
+        "dist/backend.js"
+      ],
+      "framework": "Node",
+      "aliases": [
+        "dbgate-plugin-mysql"
+      ],
+      "packageName": "dbgate-plugin-mysql"
+    },
+    {
+      "name": "dbgate-plugin-oracle",
+      "kind": "package",
+      "path": "plugins/dbgate-plugin-oracle",
+      "purpose": "Oracle connector plugin for DbGate",
+      "entrypoints": [
+        "dist/backend.js"
+      ],
+      "framework": "Node",
+      "aliases": [
+        "dbgate-plugin-oracle"
+      ],
+      "packageName": "dbgate-plugin-oracle"
+    },
+    {
+      "name": "dbgate-plugin-postgres",
+      "kind": "package",
+      "path": "plugins/dbgate-plugin-postgres",
+      "purpose": "PostgreSQL connector plugin for DbGate",
+      "entrypoints": [
+        "dist/backend.js"
+      ],
+      "framework": "Node",
+      "aliases": [
+        "dbgate-plugin-postgres"
+      ],
+      "packageName": "dbgate-plugin-postgres"
+    },
+    {
+      "name": "dbgate-plugin-redis",
+      "kind": "package",
+      "path": "plugins/dbgate-plugin-redis",
+      "purpose": "Redis connector plugin for DbGate",
+      "entrypoints": [
+        "dist/backend.js"
+      ],
+      "framework": "Node",
+      "aliases": [
+        "dbgate-plugin-redis"
+      ],
+      "packageName": "dbgate-plugin-redis"
+    },
+    {
+      "name": "dbgate-plugin-sqlite",
+      "kind": "package",
+      "path": "plugins/dbgate-plugin-sqlite",
+      "purpose": "SQLite connect plugin for DbGate",
+      "entrypoints": [
+        "dist/backend.js"
+      ],
+      "framework": "Node",
+      "aliases": [
+        "dbgate-plugin-sqlite"
+      ],
+      "packageName": "dbgate-plugin-sqlite"
+    },
+    {
+      "name": "dbgate-plugin-xml",
+      "kind": "package",
+      "path": "plugins/dbgate-plugin-xml",
+      "purpose": "XML import/export plugin for DbGate",
+      "entrypoints": [
+        "dist/backend.js"
+      ],
+      "framework": "Node",
+      "aliases": [
+        "dbgate-plugin-xml"
+      ],
+      "packageName": "dbgate-plugin-xml"
+    },
+    {
+      "name": "dbgate-tets-api",
+      "kind": "package",
+      "path": "test-api",
+      "purpose": "Testing API server (OpenAPI/swagger + graphQL)",
+      "entrypoints": [
+        "src/server.js"
+      ],
+      "framework": "Express",
+      "aliases": [
+        "dbgate-tets-api",
+        "test-api"
+      ],
+      "packageName": "dbgate-tets-api"
+    },
+    {
+      "name": "docker",
+      "kind": "infrastructure",
+      "path": "docker",
+      "purpose": "docker infrastructure",
+      "aliases": [
+        "docker"
+      ]
+    },
+    {
+      "name": "test",
+      "kind": "module",
+      "path": "test",
+      "purpose": "test module",
+      "aliases": [
+        "test"
+      ]
+    }
+  ],
+  "workers": {},
+  "apps": {
+    "dbgate-web": {
+      "path": "packages/web",
+      "purpose": "This package is used internally by DbGate",
+      "type": "internal",
+      "framework": "Node",
+      "aliases": [
+        "dbgate-web",
+        "web"
+      ]
+    }
+  },
+  "shared": {
+    "dbgate": {
+      "path": "app",
+      "purpose": "Opensource database administration tool",
+      "packageName": "dbgate"
+    },
+    "e2e-tests": {
+      "path": "e2e-tests",
+      "purpose": "e2e-tests package",
+      "packageName": "e2e-tests"
+    },
+    "dbgate-integration-tests": {
+      "path": "integration-tests",
+      "purpose": "dbgate-integration-tests package",
+      "packageName": "dbgate-integration-tests"
+    },
+    "dbgate-aigwmock": {
+      "path": "packages/aigwmock",
+      "purpose": "Mock AI Gateway server for E2E testing",
+      "packageName": "dbgate-aigwmock"
+    },
+    "dbgate-api": {
+      "path": "packages/api",
+      "purpose": "Allows run DbGate data-manipulation scripts.",
+      "packageName": "dbgate-api"
+    },
+    "dbgate-datalib": {
+      "path": "packages/datalib",
+      "purpose": "dbgate-datalib package",
+      "packageName": "dbgate-datalib"
+    },
+    "dbmodel": {
+      "path": "packages/dbmodel",
+      "purpose": "Deploy, load or build script from model of SQL database",
+      "packageName": "dbmodel"
+    },
+    "dbgate-filterparser": {
+      "path": "packages/filterparser",
+      "purpose": "dbgate-filterparser package",
+      "packageName": "dbgate-filterparser"
+    },
+    "dbgate-rest": {
+      "path": "packages/rest",
+      "purpose": "REST API support for DbGate",
+      "packageName": "dbgate-rest"
+    },
+    "dbgate-serve": {
+      "path": "packages/serve",
+      "purpose": "Opensource database administration tool - web interface",
+      "packageName": "dbgate-serve"
+    },
+    "dbgate-sqltree": {
+      "path": "packages/sqltree",
+      "purpose": "JavaScript/TypeScript SQL query-builder library",
+      "packageName": "dbgate-sqltree"
+    },
+    "dbgate-tools": {
+      "path": "packages/tools",
+      "purpose": "Auxiliary tools for other DbGate packages.",
+      "packageName": "dbgate-tools"
+    },
+    "dbgate-types": {
+      "path": "packages/types",
+      "purpose": "Typescript definitions for DbGate app",
+      "packageName": "dbgate-types"
+    },
+    "dbgate-plugin-cassandra": {
+      "path": "plugins/dbgate-plugin-cassandra",
+      "purpose": "cassandra connector for DbGate",
+      "packageName": "dbgate-plugin-cassandra"
+    },
+    "dbgate-plugin-clickhouse": {
+      "path": "plugins/dbgate-plugin-clickhouse",
+      "purpose": "Clickhouse connector for DbGate",
+      "packageName": "dbgate-plugin-clickhouse"
+    },
+    "dbgate-plugin-csv": {
+      "path": "plugins/dbgate-plugin-csv",
+      "purpose": "CSV import/export plugin for DbGate",
+      "packageName": "dbgate-plugin-csv"
+    },
+    "dbgate-plugin-dbf": {
+      "path": "plugins/dbgate-plugin-dbf",
+      "purpose": "DBF import/export plugin for DbGate",
+      "packageName": "dbgate-plugin-dbf"
+    },
+    "dbgate-plugin-duckdb": {
+      "path": "plugins/dbgate-plugin-duckdb",
+      "purpose": "DuckDB connect plugin for DbGate",
+      "packageName": "dbgate-plugin-duckdb"
+    },
+    "dbgate-plugin-excel": {
+      "path": "plugins/dbgate-plugin-excel",
+      "purpose": "MS Excel import/export plugin for DbGate",
+      "packageName": "dbgate-plugin-excel"
+    },
+    "dbgate-plugin-firebird": {
+      "path": "plugins/dbgate-plugin-firebird",
+      "purpose": "firebirdQL connector plugin for DbGate",
+      "packageName": "dbgate-plugin-firebird"
+    },
+    "dbgate-plugin-mongo": {
+      "path": "plugins/dbgate-plugin-mongo",
+      "purpose": "MongoDB connect plugin for DbGate",
+      "packageName": "dbgate-plugin-mongo"
+    },
+    "dbgate-plugin-mssql": {
+      "path": "plugins/dbgate-plugin-mssql",
+      "purpose": "MS SQL connect plugin for DbGate",
+      "packageName": "dbgate-plugin-mssql"
+    },
+    "dbgate-plugin-mysql": {
+      "path": "plugins/dbgate-plugin-mysql",
+      "purpose": "MySQL connect plugin for DbGate",
+      "packageName": "dbgate-plugin-mysql"
+    },
+    "dbgate-plugin-oracle": {
+      "path": "plugins/dbgate-plugin-oracle",
+      "purpose": "Oracle connector plugin for DbGate",
+      "packageName": "dbgate-plugin-oracle"
+    },
+    "dbgate-plugin-postgres": {
+      "path": "plugins/dbgate-plugin-postgres",
+      "purpose": "PostgreSQL connector plugin for DbGate",
+      "packageName": "dbgate-plugin-postgres"
+    },
+    "dbgate-plugin-redis": {
+      "path": "plugins/dbgate-plugin-redis",
+      "purpose": "Redis connector plugin for DbGate",
+      "packageName": "dbgate-plugin-redis"
+    },
+    "dbgate-plugin-sqlite": {
+      "path": "plugins/dbgate-plugin-sqlite",
+      "purpose": "SQLite connect plugin for DbGate",
+      "packageName": "dbgate-plugin-sqlite"
+    },
+    "dbgate-plugin-xml": {
+      "path": "plugins/dbgate-plugin-xml",
+      "purpose": "XML import/export plugin for DbGate",
+      "packageName": "dbgate-plugin-xml"
+    },
+    "dbgate-tets-api": {
+      "path": "test-api",
+      "purpose": "Testing API server (OpenAPI/swagger + graphQL)",
+      "packageName": "dbgate-tets-api"
+    },
+    "docker": {
+      "path": "docker",
+      "purpose": "docker infrastructure"
+    },
+    "test": {
+      "path": "test",
+      "purpose": "test module"
+    }
+  },
+  "patterns": {
+    "workspaceStructure": {
+      "description": "Packages follow the root package.json workspace declarations with additional top-level package dirs captured when they act as runtime surfaces.",
+      "structure": "packages/*, plugins/*, integration-tests, app, e2e-tests, test-api plus repo-level docs/, docker/, scripts/, and tests/"
+    },
+    "deployment": {
+      "description": "yarn workspace deployment and validation commands",
+      "commands": [
+        "yarn start"
+      ]
+    }
+  },
+  "fileTypes": {
+    "workspacePackage": {
+      "pattern": "packages/*/package.json, plugins/*/package.json, integration-tests/package.json, app/package.json, e2e-tests/package.json, test-api/package.json",
+      "description": "Primary package manifests declared by the root workspace plus extra top-level runtime packages"
+    },
+    "workerConfig": {
+      "pattern": "packages/*/wrangler.toml, plugins/*/wrangler.toml, integration-tests/wrangler.toml, app/wrangler.toml, e2e-tests/wrangler.toml, test-api/wrangler.toml",
+      "description": "Cloudflare Worker configuration in workspace packages"
+    },
+    "repoDocs": {
+      "pattern": "docs/**/*.md",
+      "description": "Repo-level documentation"
+    }
+  }
+}

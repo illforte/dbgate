@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "runtimeId": "dbgate-fork-repo",
+  "name": "ai-dbgate-fork-repo",
+  "port": 8405,
+  "pidFile": "{{home}}/.ai/run/dbgate-fork-repo-mcp.pid",
+  "logFile": "{{home}}/.ai/run/dbgate-fork-repo-mcp.log",
+  "hubScript": "{{workspaceRoot}}/.ai/host/layered-sse-hub.mjs",
+  "context": {
+    "workspaceRoot": "/Users/florian.scheugenpflug/Projekte",
+    "repoRoot": "/Users/florian.scheugenpflug/Projekte/weretradeIT/dbgate-fork",
+    "runtimeHostRoot": "/Users/florian.scheugenpflug/Projekte/.ai/host",
+    "sharedMcpProviderRoot": "/Users/florian.scheugenpflug/Projekte/weretradeInfantrie_1.0"
+  },
+  "dotenv": [
+    "{{sharedMcpProviderRoot}}/.env"
+  ],
+  "services": {
+    "codebase": {
+      "entry": "{{workspaceRoot}}/.ai/host/run-service-entry.mjs",
+      "env": {
+        "PROJECT_ROOT": "{{repoRoot}}",
+        "REPO_ROOT": "{{repoRoot}}",
+        "MCP_SERVER_NAME": "dbgate-fork-codebase",
+        "MCP_PROVIDER_ENTRY_RELATIVE": "codebase-server/index.js",
+        "CODEBASE_INDEX_PATH": "{{repoRoot}}/.ai/repo/codebase-index.json",
+        "CODEBASE_INDEX_ADAPTER": "yarn-monorepo-v1",
+        "CODEBASE_REPO_SLUG": "dbgate-fork",
+        "CODEBASE_DEFAULT_APP_TYPE": "internal",
+        "CODEBASE_REBUILD_ON_START": "1"
+      }
+    },
+    "docs": {
+      "entry": "{{workspaceRoot}}/.ai/host/run-service-entry.mjs",
+      "env": {
+        "PROJECT_ROOT": "{{repoRoot}}",
+        "REPO_ROOT": "{{repoRoot}}",
+        "MCP_SERVER_NAME": "dbgate-fork-docs",
+        "MCP_PROVIDER_ENTRY_RELATIVE": "docs-server/index.js"
+      }
+    },
+    "filesystem-enhanced": {
+      "entry": "{{workspaceRoot}}/.ai/host/run-service-entry.mjs",
+      "env": {
+        "ALLOWED_DIRECTORIES": "{{repoRoot}}",
+        "MCP_SERVER_NAME": "dbgate-fork-filesystem",
+        "MCP_PROVIDER_ENTRY_RELATIVE": "filesystem-enhanced/index.js"
+      }
+    }
+  }
+}
